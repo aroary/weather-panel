@@ -30,12 +30,21 @@
     <ClInclude Include="weather-api.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="widget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="weather-panel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="weather-api.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="widget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="quicktype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

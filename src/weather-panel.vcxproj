@@ -133,6 +133,7 @@
     <ClInclude Include="weather-panel.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="weather-api.cpp" />
     <ClCompile Include="weather-panel.cpp" />
   </ItemGroup>
   <ItemGroup>

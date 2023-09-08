@@ -1,30 +1,29 @@
 #include "framework.h"
 #include "weather-panel.h"
+#include "weather-api.h"
 
 #define MAX_LOADSTRING 100
 
 // Global Variables:
-HINSTANCE hInst;                         // current instance
-WCHAR     szTitle[MAX_LOADSTRING];       // The title bar text
-WCHAR     szWindowClass[MAX_LOADSTRING]; // the main window class name
+HINSTANCE  hInst;                          // current instance
+WCHAR      szTitle[MAX_LOADSTRING];        // The title bar text
+WCHAR      szWindowClass[MAX_LOADSTRING];  // the main window class name
 
 // Forward declarations of functions included in this code module:
-ATOM             MyRegisterClass(HINSTANCE hInstance);
-BOOL             InitInstance(HINSTANCE, int);
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
+ATOM              RegisterMain(HINSTANCE hInstance);
+BOOL              InitInstance(HINSTANCE, int);
+LRESULT CALLBACK  WndProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK  About(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    // TODO: Place code here.
-
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_WEATHERPANEL, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+    RegisterMain(hInstance);
 
     // Perform application initialization:
     if (!InitInstance (hInstance, nCmdShow))
@@ -45,16 +44,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     return (int) msg.wParam;
 }
 
-
-
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
+ATOM RegisterMain(HINSTANCE hInstance)
 {
-    WNDCLASSEXW wcex;
+    WNDCLASSEXW wcex{};
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
@@ -101,27 +93,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
+
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
+
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
         }
         break;
+
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
             
-
+            // Code
             
             EndPaint(hWnd, &ps);
         }
         break;
+
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
+
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }

@@ -31,5 +31,10 @@
 *.out
 *.app
 
+# Build directories
+x64/
+Build/
+Debug/
+
 # Editor configurations
 .vs

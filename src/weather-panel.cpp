@@ -82,6 +82,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    static RECT client;
+    static LPPOINT cursor, view;
+    static HPEN pen;
+    static HBRUSH brush;
+
     switch (message)
     {
     case WM_COMMAND:
@@ -104,18 +109,53 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
 
+    case WM_MOUSEMOVE:
+        GetCursorPos(cursor);
+        break;
+
+    case WM_SIZE:
+        GetClientRect(hWnd, &client);
+        view->x = (client.right - client.left) / 2;
+        view->y = (client.bottom - client.top) / 2;
+        break;
+
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
             
-            // Code
+            SelectObject(hdc, pen);
             
+            int box = 20;
+
+            for (int i = 0; i < client.right - client.left; i+= box)
+            {
+                MoveToEx(hdc, i, client.top, NULL);
+                LineTo(hdc, i, client.bottom - client.top);
+            }
+
+            for (int i = 0; i < client.bottom - client.top; i += box)
+            {
+                MoveToEx(hdc, client.left, i, NULL);
+                LineTo(hdc, client.right - client.left, i);
+            }
+
             EndPaint(hWnd, &ps);
         }
         break;
 
+    case WM_CREATE:
+        GetClientRect(hWnd, &client);
+        view->x = (client.right - client.left) / 2;
+        view->y = (client.bottom - client.top) / 2;
+
+        pen = CreatePen(PS_SOLID, 2, RGB(200, 200, 200));
+        brush = CreateSolidBrush(RGB(10, 100, 200));
+        break;
+
     case WM_DESTROY:
+        DeleteObject(pen);
+
         PostQuitMessage(0);
         break;
 

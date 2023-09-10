@@ -1,24 +1,15 @@
-class Widget
-{
-public:
-	Widget(int, int, int, int);
-	~Widget();
+#include "widget.h"
 
-private:
-	int x;
-	int y;
-	int w;
-	int h;
-};
-
-Widget::Widget(int x, int y, int w, int h)
-{
-	this->x = x;
-	this->y = y;
-	this->w = w;
-	this->h = h;
+Widget::Widget(int id, RECT rect) : rect{ rect.left, rect.top, rect.right, rect.bottom } {
+	this->id = id;
 }
 
-Widget::~Widget()
+void Dashboard::replace(int id, RECT rect)
 {
+	this->widgets.at(id)->rect = rect;
+}
+
+void Widget::replace(Dashboard* dashboard, int id, RECT rect)
+{
+	dashboard->replace(id, rect);
 }

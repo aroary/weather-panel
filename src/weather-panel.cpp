@@ -1,6 +1,7 @@
 #include "framework.h"
 #include "weather-panel.h"
 #include "weather-api.h"
+#include "widget.h"
 
 #define MAX_LOADSTRING 100
 
@@ -82,8 +83,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    static Dashboard dashboard;
     static RECT client;
-    static LPPOINT cursor, view;
+    static LPPOINT cursor;
     static HPEN pen;
     static HBRUSH brush;
 
@@ -115,8 +117,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_SIZE:
         GetClientRect(hWnd, &client);
-        view->x = (client.right - client.left) / 2;
-        view->y = (client.bottom - client.top) / 2;
         break;
 
     case WM_PAINT:
@@ -140,17 +140,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 LineTo(hdc, client.right - client.left, i);
             }
 
+            for (Widget* widget : dashboard.widgets)
+            {
+                widget->rect;
+                Rectangle(hdc, widget->rect.left * box, widget->rect.top * box, widget->rect.right * box, widget->rect.bottom * box);
+            }
+
             EndPaint(hWnd, &ps);
         }
         break;
 
     case WM_CREATE:
-        GetClientRect(hWnd, &client);
-        view->x = (client.right - client.left) / 2;
-        view->y = (client.bottom - client.top) / 2;
+        {
+            GetClientRect(hWnd, &client);
 
-        pen = CreatePen(PS_SOLID, 2, RGB(200, 200, 200));
-        brush = CreateSolidBrush(RGB(10, 100, 200));
+            RECT wRect;
+            Widget* widget;
+
+            wRect = { 0, 0, 10, 10 };
+            widget = new Widget(dashboard.widgets.size(), wRect);
+            dashboard.widgets.push_back(widget);
+
+            wRect = { 15, 15, 20, 20 };
+            widget = new Widget(dashboard.widgets.size(), wRect);
+            dashboard.widgets.push_back(widget);
+
+            pen = CreatePen(PS_SOLID, 2, RGB(200, 200, 200));
+            brush = CreateSolidBrush(RGB(10, 100, 200));
+        }
         break;
 
     case WM_DESTROY:

@@ -1,3 +1,8 @@
+#pragma once
+
+#include <optional>
+#include "nlohmann/json.hpp"
+
 //  To parse this JSON data, first install
 //
 //      json.hpp  https://github.com/nlohmann/json
@@ -5,11 +10,6 @@
 //  Then include this file, and then do
 //
 //     Weather data = nlohmann::json::parse(jsonString);
-
-#pragma once
-
-#include <optional>
-#include "nlohmann/json.hpp"
 
 #ifndef NLOHMANN_OPT_HELPER
 #define NLOHMANN_OPT_HELPER

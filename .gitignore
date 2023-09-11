@@ -37,4 +37,5 @@ Build/
 Debug/
 
 # Editor configurations
+*.aps
 .vs

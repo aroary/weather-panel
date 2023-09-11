@@ -165,6 +165,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             widget = new Widget(dashboard.widgets.size(), wRect);
             dashboard.widgets.push_back(widget);
 
+            dashboard.update();
+
             pen = CreatePen(PS_SOLID, 2, RGB(200, 200, 200));
             brush = CreateSolidBrush(RGB(10, 100, 200));
         }

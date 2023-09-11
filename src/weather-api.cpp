@@ -43,14 +43,10 @@ std::string api::Weather::url(std::string provider, std::string apikey)
 
 json::Weather api::Weather::weather(std::string url)
 {
-	const char* cmd[2048];
-
-	strcpy_s((char*)cmd, sizeof cmd, "curl ");
-	strcat_s((char*)cmd, sizeof cmd, url.c_str());
-
+	std::string cmd = "curl " + url;
 	std::array<char, 128> buffer{};
 	std::string result;
-	std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(*cmd, "r"), _pclose);
+	std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd.c_str(), "r"), _pclose);
 	
 	if (!pipe) 
 		throw std::runtime_error("popen failed");
@@ -58,7 +54,7 @@ json::Weather api::Weather::weather(std::string url)
 	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
 		result += buffer.data();
 
-	return nlohmann::json::parse("{}");
+	return nlohmann::json::parse(result);
 };
 
 std::string api::Hourly::url()

@@ -3,40 +3,44 @@
 std::string api::Weather::url(std::string provider, std::string apikey)
 {
 	std::ostringstream url;
-	url << "https://" << provider << "/v1/forecast?latitude=" << this->latitude << "&longitude=" << this->longitude;
-	
+
+	// Set floating point precision to ensure reliability.
+	url << std::setprecision(std::numeric_limits<float>::max_digits10);
+
+	url << "https://" << provider << "/v1/forecast?latitude=" << this->latitude << "^&longitude=" << this->longitude;
+
 	if (apikey.size())
-		url << "&apikey=" << apikey;
+		url << "^&apikey=" << apikey;
 
 	if (this->elevation)
-		url << "&elevation=" << this->elevation;
+		url << "^&elevation=" << this->elevation;
 
 	if (this->current_weather)
-		url << "&current_weather=" << this->current_weather;
+		url << "^&current_weather=" << this->current_weather;
 
-	if (this->temperature_unit.size())
-		url << "&temperature_unit=" << this->temperature_unit;
+	if (this->temperature_unit != "celsius")
+		url << "^&temperature_unit=" << this->temperature_unit;
 
-	if (this->windspeed_unit.size())
-		url << "&windspeed_unit=" << this->windspeed_unit;
+	if (this->windspeed_unit != "kmh")
+		url << "^&windspeed_unit=" << this->windspeed_unit;
 
-	if (this->precipitation_unit.size())
-		url << "&precipitation_unit=" << this->precipitation_unit;
+	if (this->precipitation_unit != "mm")
+		url << "^&precipitation_unit=" << this->precipitation_unit;
 
-	if (this->timeformat.size())
-		url << "&timeformat=" << this->timeformat;
+	if (this->timeformat != "iso8601")
+		url << "^&timeformat=" << this->timeformat;
 
-	if (this->timezone.size())
-		url << "&timezone=" << this->timezone;
+	if (this->timezone != "GMT")
+		url << "^&timezone=" << this->timezone;
 
 	if (this->past_days)
-		url << "&past_days=" << this->past_days;
+		url << "^&past_days=" << this->past_days;
 
 	if (this->forecast_days != 7)
-		url << "&forecast_days=" << this->forecast_days;
+		url << "^&forecast_days=" << this->forecast_days;
 
-	if (this->cell_selection.size())
-		url << "&cell_selection=" << this->cell_selection;
+	if (this->cell_selection != "land")
+		url << "^&cell_selection=" << this->cell_selection;
 
 	return url.str();
 }
@@ -47,10 +51,10 @@ json::Weather api::Weather::weather(std::string url)
 	std::array<char, 128> buffer{};
 	std::string result;
 	std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd.c_str(), "r"), _pclose);
-	
-	if (!pipe) 
+
+	if (!pipe)
 		throw std::runtime_error("popen failed");
-	
+
 	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
 		result += buffer.data();
 
@@ -59,7 +63,7 @@ json::Weather api::Weather::weather(std::string url)
 
 std::string api::Hourly::url()
 {
-	std::string url = "&hourly=";
+	std::string url = "^&hourly=";
 
 	if (this->temperature)
 		url += "temperature_2m,";
@@ -78,25 +82,25 @@ std::string api::Hourly::url()
 
 	if (this->precipitation)
 		url += "precipitation,";
-	
+
 	if (this->rain)
 		url += "rain,";
 
 	if (this->showers)
 		url += "showers,";
-		
+
 	if (this->snowfall)
 		url += "snowfall,";
-	
+
 	if (this->snowdepth)
 		url += "snow_depth";
-	
+
 	if (this->weathercode)
 		url += "weathercode,";
 
-	 if (this->pressuremsl)
+	if (this->pressuremsl)
 		url += "pressure_msl,";
-	
+
 	if (this->surfacepressure)
 		url += "surface_pressure,";
 
@@ -108,7 +112,7 @@ std::string api::Hourly::url()
 
 	if (this->cloudcovermid)
 		url += "cloudcover_mid,";
-	
+
 	if (this->cloudcoverhigh)
 		url += "cloudcover_high";
 
@@ -138,7 +142,7 @@ std::string api::Hourly::url()
 
 std::string api::Daily::url()
 {
-	std::string url = "&daily=";
+	std::string url = "^&daily=";
 
 	if (this->temperaturemax)
 		url += "temperature_2m_max,";

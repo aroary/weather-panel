@@ -6,6 +6,8 @@
 #include <memory>
 #include <stdexcept>
 #include <array>
+#include <iomanip>
+#include <limits>
 #include "json.h"
 
 namespace api
@@ -31,8 +33,9 @@ namespace api
 		int          past_days = 0;                 // If past_days is set, yesterday or the day before yesterday data are also returned.
 		int          forecast_days = 7;             // Per default, only 7 days are returned. Up to 16 days of forecast are possible.
 		std::string  cell_selection = "land";       // Set a preference how grid-cells are selected.
-		Hourly*      hourly;                        // A list of weather variables which should be returned
-		Daily*       daily;                         // A list of daily weather variable aggregations which should be returned
+		
+		Hourly* hourly; // A list of weather variables which should be returned
+		Daily* daily; // A list of daily weather variable aggregations which should be returned
 	};
 
 	class Hourly

@@ -124,26 +124,58 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 
+		SetBkMode(hdc, TRANSPARENT);
+
 		SelectObject(hdc, pen);
 
 		int box = 20;
 
+		// Grid lines
 		for (int i = 0; i < client.right - client.left; i += box)
 		{
 			MoveToEx(hdc, i, client.top, NULL);
 			LineTo(hdc, i, client.bottom - client.top);
 		}
 
+		// Grid lines
 		for (int i = 0; i < client.bottom - client.top; i += box)
 		{
 			MoveToEx(hdc, client.left, i, NULL);
 			LineTo(hdc, client.right - client.left, i);
 		}
 
+		// Draw widgets
 		for (Widget* widget : dashboard.widgets)
 		{
+			UINT width = (widget->rect.right - widget->rect.left);
+			UINT height = (widget->rect.bottom - widget->rect.top);
+			UINT pwidth = width * box;
+			UINT pheight = height * box;
+
 			widget->rect;
 			Rectangle(hdc, widget->rect.left * box, widget->rect.top * box, widget->rect.right * box, widget->rect.bottom * box);
+
+			for (int i = 0; i < widget->fields.size(); i++)
+			{
+				std::wstring title = std::wstring(widget->fields[i].begin(), widget->fields[i].end());
+				std::wstring value;
+
+				if (widget->fields[i] == "timezone")
+				{
+					std::string s = *widget->data[i][0]->s;
+					value = *s.c_str();
+				}
+				else if (widget->fields[i] == "latitude" || widget->fields[i] == "longitude")
+					value = std::to_wstring(*widget->data[i][0]->d);
+				else if (widget->fields[i] == "elevation")
+					value = std::to_wstring(*widget->data[i][0]->i);
+
+				SetTextAlign(hdc, TA_CENTER);
+				TextOut(hdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box, title.c_str(), lstrlen(title.c_str()));
+
+				SetTextAlign(hdc, TA_CENTER | TA_BASELINE);
+				TextOut(hdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + pheight / 2, value.c_str(), lstrlen(value.c_str()));
+			}
 		}
 
 		EndPaint(hWnd, &ps);
@@ -154,14 +186,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		GetClientRect(hWnd, &client);
 
-		Widget* widget;
-
-		widget = new Widget(dashboard.widgets.size(), { 0, 0, 10, 10 });
+		Widget* widget = new Widget((int)dashboard.widgets.size(), { 0, 0, 10, 10 });
 		widget->fields.push_back("latitude");
 		dashboard.widgets.push_back(widget);
 
-		widget = new Widget(dashboard.widgets.size(), { 15, 15, 20, 20 });
-		widget->fields.push_back("longitude");
+		Widget* widget2 = new Widget((int)dashboard.widgets.size(), { 15, 15, 20, 20 });
+		widget2->fields.push_back("longitude");
+		dashboard.widgets.push_back(widget2);
+
+		widget = new Widget((int)dashboard.widgets.size(), { 30, 16, 45, 21 });
+		widget->fields.push_back("timezone");
+		dashboard.widgets.push_back(widget);
+
+		widget = new Widget((int)dashboard.widgets.size(), { 20, 1, 24, 6 });
+		widget->fields.push_back("elevation");
 		dashboard.widgets.push_back(widget);
 
 		dashboard.update();

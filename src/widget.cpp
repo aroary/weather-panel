@@ -26,19 +26,34 @@ void Dashboard::update()
 		for (Widget* widget : this->widgets)
 		{
 			// Clear old data
+			for (std::vector<Data*> field : widget->data)
+				for (Data* data : field)
+				{
+					delete data;
+				}
+
 			widget->data.clear();
 
 			// Reinitialize 2d vector
 			while (widget->data.size() < widget->fields.size())
 				widget->data.push_back({});
 
+			// Add data.
 			for (int i = 0; i < widget->fields.size(); i++)
-				if (widget->fields[i] == "latitude")
-					widget->data[i].push_back({ .d = &weather.latitude.value() });
-				else if (widget->fields[i] == "longitude")
-					widget->data[i].push_back({ .d = &weather.longitude.value() });
-				else if (widget->fields[i] == "elevation")
-					widget->data[i].push_back({ .i = &weather.elevation.value() });
+			{
+				Data* data = new Data;
+
+				if (widget->fields[i] == "latitude" && weather.latitude.has_value())
+					data->d = new double(*weather.latitude);
+				else if (widget->fields[i] == "longitude" && weather.longitude.has_value())
+					data->d = new double(*weather.longitude);
+				else if (widget->fields[i] == "elevation" && weather.elevation.has_value())
+					data->i = new int64_t(*weather.elevation);
+				else if (widget->fields[i] == "timezone" && weather.timezone.has_value())
+					data->s = new std::string(*weather.timezone);
+
+				widget->data[i].push_back(data);
+			}
 		}
 }
 

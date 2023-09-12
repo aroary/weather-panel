@@ -16,7 +16,7 @@ std::string api::Weather::url(std::string provider, std::string apikey)
 		url << "^&elevation=" << this->elevation;
 
 	if (this->current_weather)
-		url << "^&current_weather=" << this->current_weather;
+		url << "^&current_weather=" << this->current_weather ? "true" : "false";
 
 	if (this->temperature_unit != "celsius")
 		url << "^&temperature_unit=" << this->temperature_unit;
@@ -41,6 +41,20 @@ std::string api::Weather::url(std::string provider, std::string apikey)
 
 	if (this->cell_selection != "land")
 		url << "^&cell_selection=" << this->cell_selection;
+
+	if (this->hourly != nullptr)
+	{
+		std::string hourly = this->hourly->url();
+		if (hourly != "^&hourly=")
+			url << hourly;
+	}
+
+	if (this->daily != nullptr)
+	{
+		std::string daily = this->daily->url();
+		if (daily != "^&daily=")
+			url << daily;
+	}
 
 	return url.str();
 }

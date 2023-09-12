@@ -1,3 +1,5 @@
+#include <fstream>
+#include <sstream>
 #include "framework.h"
 #include "weather-panel.h"
 #include "weather-api.h"
@@ -83,11 +85,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	static Dashboard dashboard;
-	static RECT client;
-	static LPPOINT cursor;
-	static HPEN pen;
-	static HBRUSH brush;
+	// Configurations and settings for the app.
+	static std::fstream  configFile("weather.conf", std::ios::out | std::ios::in | std::ios::app);
+
+	static Dashboard     dashboard;   // Current dashboard to work with.
+	static RECT          client;      // Window client area.
+	static LPPOINT       cursor;      // Current cursor position.
+	static HPEN          pen;         // Main pen.
+	static HBRUSH        brush;       // Main brush.
 
 	switch (message)
 	{
@@ -103,6 +108,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
+			break;
+
+		case ID_EDIT_SYNC:
+			// Update data.
+			dashboard.update();
+
+			// Repaint window.
+			InvalidateRect(hWnd, &client, true);
+
+			MessageBox(NULL, L"Dashboard updated.", L"Sync", MB_ICONINFORMATION | MB_OK);
 			break;
 
 		default:
@@ -155,20 +170,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			widget->rect;
 			Rectangle(hdc, widget->rect.left * box, widget->rect.top * box, widget->rect.right * box, widget->rect.bottom * box);
 
+			// Draw text values
 			for (int i = 0; i < widget->fields.size(); i++)
 			{
 				std::wstring title = std::wstring(widget->fields[i].begin(), widget->fields[i].end());
 				std::wstring value;
 
-				if (widget->fields[i] == "timezone")
+				// Find value and assign it to `value`.
+				if (widget->data[i][0]->s != nullptr)
 				{
-					std::string s = *widget->data[i][0]->s;
-					value = *s.c_str();
+					std::string data = *widget->data[i][0]->s;
+					value = std::wstring(data.begin(), data.end());
 				}
-				else if (widget->fields[i] == "latitude" || widget->fields[i] == "longitude")
+				else if (widget->data[i][0]->d != nullptr)
+				{
 					value = std::to_wstring(*widget->data[i][0]->d);
-				else if (widget->fields[i] == "elevation")
+					value.erase(value.find_last_not_of('0') + 1, std::string::npos);
+					value.erase(value.find_last_not_of('.') + 1, std::string::npos);
+				}
+				else if (widget->data[i][0]->i != nullptr)
 					value = std::to_wstring(*widget->data[i][0]->i);
+				else;
 
 				SetTextAlign(hdc, TA_CENTER);
 				TextOut(hdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box, title.c_str(), lstrlen(title.c_str()));
@@ -186,24 +208,56 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		GetClientRect(hWnd, &client);
 
-		Widget* widget = new Widget((int)dashboard.widgets.size(), { 0, 0, 10, 10 });
-		widget->fields.push_back("latitude");
-		dashboard.widgets.push_back(widget);
+		// Init config file
+		std::string line; // Current line.
 
-		Widget* widget2 = new Widget((int)dashboard.widgets.size(), { 15, 15, 20, 20 });
-		widget2->fields.push_back("longitude");
-		dashboard.widgets.push_back(widget2);
+		configFile.seekg(0);
 
-		widget = new Widget((int)dashboard.widgets.size(), { 30, 16, 45, 21 });
-		widget->fields.push_back("timezone");
-		dashboard.widgets.push_back(widget);
+		if (configFile.is_open())
+		{
+			INIT:
+			if (std::getline(configFile, line) && line == "0")
+				while (std::getline(configFile, line))
+				{
+					std::istringstream iss(line);
+					std::string command;
+					iss >> command;
+					if (command == "widget")
+					{
+						RECT position{};
+						iss >> position.left >> position.top >> position.right >> position.bottom;
 
-		widget = new Widget((int)dashboard.widgets.size(), { 20, 1, 24, 6 });
-		widget->fields.push_back("elevation");
-		dashboard.widgets.push_back(widget);
+						Widget* widget = new Widget((int)dashboard.widgets.size(), position);
 
+						std::string field;
+						while (iss >> field)
+							widget->fields.push_back(field);
+
+						dashboard.widgets.push_back(widget);
+					}
+				}
+			else {
+				MessageBox(NULL, L"Problem reading configurations.\nPress OK to reset app configuration.", L"Configuration Error", MB_ICONEXCLAMATION | MB_OK);
+
+				configFile.write("0", sizeof("0"));
+
+				configFile.seekg(0);
+
+				goto INIT;
+			}
+
+			configFile.close();
+		}
+		else
+			MessageBox(NULL, L"Faild to read configuration file.", L"Configuration Error", MB_ICONERROR | MB_OK);
+
+		dashboard.weather.current_weather = true;
+		dashboard.weather.timezone = "GMT";
+		dashboard.weather.latitude = 45.67;
+		dashboard.weather.longitude = -76.54;
 		dashboard.update();
 
+		// Init GDI tools
 		pen = CreatePen(PS_SOLID, 2, RGB(200, 200, 200));
 		brush = CreateSolidBrush(RGB(10, 100, 200));
 	}

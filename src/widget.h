@@ -7,7 +7,7 @@
 
 class Widget;
 
-union Data; // Container for json value
+struct Data; // Container for json value
 
 class Dashboard
 {
@@ -31,9 +31,11 @@ public:
 	std::vector<std::vector<Data*>>  data;    // All data is stored as a string and may be converted to a number later.
 };
 
-union Data
+struct Data
 {
-	std::string* s;
-	double* d;
-	int64_t* i;
+	~Data();
+
+	std::string* s = nullptr;
+	double* d = nullptr;
+	int64_t* i = nullptr;
 };

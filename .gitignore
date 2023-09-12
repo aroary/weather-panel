@@ -39,3 +39,6 @@ Debug/
 # Editor configurations
 *.aps
 .vs
+
+# App configuration
+weather.conf

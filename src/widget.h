@@ -5,6 +5,9 @@
 #include <iomanip>
 #include "weather-api.h"
 
+using std::string;
+using std::vector;
+
 class Widget;
 
 struct Data; // Container for json value
@@ -12,7 +15,7 @@ struct Data; // Container for json value
 class Dashboard
 {
 public:
-	std::vector<Widget*> widgets;
+	vector<Widget*> widgets;
 	void replace(int, RECT);
 	void update();
 
@@ -25,17 +28,19 @@ public:
 	Widget(int, RECT);
 	void replace(Dashboard*, int, RECT);
 
-	int                              id;      // The index of the widget on the dashboard (vector.size()).
-	RECT                             rect;    // The widget size and location.
-	std::vector<std::string>         fields;  // Fields of data.
-	std::vector<std::vector<Data*>>  data;    // All data is stored as a string and may be converted to a number later.
+	int                    id;      // The index of the widget on the dashboard (vector.size()).
+	RECT                   rect;    // The widget size and location.
+	vector<string>         fields;  // Fields of data.
+	vector<vector<Data*>>  data;    // All data is stored as a string and may be converted to a number later.
+	vector<string*>        units;   // The unit of the data of the field.
 };
 
 struct Data
 {
 	~Data();
 
-	std::string* s = nullptr;
+	vector<double>* v = nullptr;
+	string* s = nullptr;
 	double* d = nullptr;
 	int64_t* i = nullptr;
 };

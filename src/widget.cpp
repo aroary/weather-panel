@@ -19,8 +19,10 @@ void Dashboard::update()
 
 	// Set api parameters from widget data.
 	for (Widget* widget : this->widgets)
-		for (std::string field : widget->fields)
-			if (field == "daily.apparenttemperaturemax")
+		for (string field : widget->fields)
+			if (field == "hourly.apparenttemperature")
+				this->weather.hourly->apparenttemperature = true;
+			else if (field == "daily.apparenttemperaturemax")
 				this->weather.daily->apparenttemperaturemax = true;
 			else if (field == "daily.apparenttemperaturemin")
 				this->weather.daily->apparenttemperaturemin = true;
@@ -70,18 +72,22 @@ void Dashboard::update()
 
 	if (weather.error.has_value() && weather.error.value())
 	{
-		std::string message = weather.reason.value();
+		string message = weather.reason.value();
 		MessageBox(NULL, std::wstring(message.begin(), message.end()).c_str(), L"API Error", MB_ICONERROR | MB_OK);
 	}
 	else
 		for (Widget* widget : this->widgets)
 		{
 			// Clear old data
-			for (std::vector<Data*> field : widget->data)
+			for (vector<Data*> field : widget->data)
 				for (Data* data : field)
 					delete data;
 
+			for (string* unit : widget->units)
+				delete unit;
+
 			widget->data.clear();
+			widget->units.clear();
 
 			// Reinitialize 2d vector
 			while (widget->data.size() < widget->fields.size())
@@ -93,18 +99,265 @@ void Dashboard::update()
 				Data* data = new Data;
 
 				if (widget->fields[i] == "latitude" && weather.latitude.has_value())
+				{
 					data->d = new double(*weather.latitude);
+					widget->units.push_back(new string(""));
+				}
 				else if (widget->fields[i] == "longitude" && weather.longitude.has_value())
+				{
 					data->d = new double(*weather.longitude);
-				else if (widget->fields[i] == "elevation" && weather.elevation.has_value())
-					data->i = new int64_t(*weather.elevation);
-				else if (widget->fields[i] == "timezone" && weather.timezone.has_value())
-					data->s = new std::string(*weather.timezone);
+					widget->units.push_back(new string(""));
+				}
 				else if (widget->fields[i] == "generationtime" && weather.generationtime_ms.has_value())
+				{
 					data->d = new double(*weather.generationtime_ms);
-				else if (widget->fields[i] == "utc_offset_seconds" && weather.utc_offset_seconds.has_value())
+					widget->units.push_back(new string("ms"));
+				}
+				else if (widget->fields[i] == "timezone" && weather.timezone.has_value())
+				{
+					data->s = new string(*weather.timezone);
+					widget->units.push_back(new string(""));
+				}
+				else if (widget->fields[i] == "utcoffsetseconds" && weather.utc_offset_seconds.has_value())
+				{
 					data->i = new int64_t(*weather.utc_offset_seconds);
-				else;
+					widget->units.push_back(new string("s"));
+				}
+				else if (widget->fields[i] == "timezoneabbreviation")
+				{
+					data->s = new string(*weather.timezone_abbreviation);
+					widget->units.push_back(new string(""));
+				}
+				else if (widget->fields[i] == "elevation" && weather.elevation.has_value())
+				{
+					data->i = new int64_t(*weather.elevation);
+					widget->units.push_back(new string("m"));
+				}
+				else if (widget->fields[i] == "hourly.time" && (*weather.hourly).time.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).time);
+					widget->units.push_back(new string(*(*weather.hourly_units).time));
+				}
+				else if (widget->fields[i] == "hourly.temperature2m" && (*weather.hourly).temperature_2m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).temperature_2m);
+					widget->units.push_back(new string(*(*weather.hourly_units).temperature_2m));
+				}
+				else if (widget->fields[i] == "hourly.relativehumidity2m" && (*weather.hourly).relativehumidity_2m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).relativehumidity_2m);
+					widget->units.push_back(new string(*(*weather.hourly_units).relativehumidity_2m));
+				}
+				else if (widget->fields[i] == "hourly.dewpoint2m" && (*weather.hourly).dewpoint_2m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).dewpoint_2m);
+					widget->units.push_back(new string(*(*weather.hourly_units).dewpoint_2m));
+				}
+				else if (widget->fields[i] == "hourly.apparenttemperature" && (*weather.hourly).apparent_temperature.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).apparent_temperature);
+					widget->units.push_back(new string(*(*weather.hourly_units).apparent_temperature));
+				}
+				else if (widget->fields[i] == "hourly.precipitationprobability" && (*weather.hourly).precipitation_probability.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).precipitation_probability);
+					widget->units.push_back(new string(*(*weather.hourly_units).precipitation_probability));
+				}
+				else if (widget->fields[i] == "hourly.precipitation" && (*weather.hourly).precipitation.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).precipitation);
+					widget->units.push_back(new string(*(*weather.hourly_units).precipitation));
+
+				}
+				else if (widget->fields[i] == "hourly.rain" && (*weather.hourly).rain.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).rain);
+					widget->units.push_back(new string(*(*weather.hourly_units).rain));
+				}
+				else if (widget->fields[i] == "hourly.showers" && (*weather.hourly).showers.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).showers);
+					widget->units.push_back(new string(*(*weather.hourly_units).showers));
+
+				}
+				else if (widget->fields[i] == "hourly.snowfall" && (*weather.hourly).snowfall.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).snowfall);
+					widget->units.push_back(new string(*(*weather.hourly_units).snowfall));
+
+				}
+				else if (widget->fields[i] == "hourly.snowdepth" && (*weather.hourly).snow_depth.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).snow_depth);
+					widget->units.push_back(new string(*(*weather.hourly_units).snow_depth));
+
+				}
+				else if (widget->fields[i] == "hourly.weathercode" && (*weather.hourly).weathercode.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).weathercode);
+					widget->units.push_back(new string(*(*weather.hourly_units).weathercode));
+				}
+				else if (widget->fields[i] == "hourly.pressuremsl" && (*weather.hourly).pressure_msl.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).pressure_msl);
+					widget->units.push_back(new string(*(*weather.hourly_units).pressure_msl));
+
+				}
+				else if (widget->fields[i] == "hourly.surfacepressure" && (*weather.hourly).surface_pressure.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).surface_pressure);
+					widget->units.push_back(new string(*(*weather.hourly_units).surface_pressure));
+
+				}
+				else if (widget->fields[i] == "hourly.cloudcover" && (*weather.hourly).cloudcover.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).cloudcover);
+					widget->units.push_back(new string(*(*weather.hourly_units).cloudcover));
+
+				}
+				else if (widget->fields[i] == "hourly.cloudcoverlow" && (*weather.hourly).cloudcover_low.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).cloudcover_low);
+					widget->units.push_back(new string(*(*weather.hourly_units).cloudcover_low));
+
+				}
+				else if (widget->fields[i] == "hourly.cloudcovermid" && (*weather.hourly).cloudcover_mid.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).cloudcover_mid);
+					widget->units.push_back(new string(*(*weather.hourly_units).cloudcover_mid));
+
+				}
+				else if (widget->fields[i] == "hourly.cloudcoverhigh" && (*weather.hourly).cloudcover_high.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).cloudcover_high);
+					widget->units.push_back(new string(*(*weather.hourly_units).cloudcover_high));
+				}
+				else if (widget->fields[i] == "hourly.visibility" && (*weather.hourly).visibility.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).visibility);
+					widget->units.push_back(new string(*(*weather.hourly_units).visibility));
+				}
+				else if (widget->fields[i] == "hourly.evapotranspiration" && (*weather.hourly).evapotranspiration.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).evapotranspiration);
+					widget->units.push_back(new string(*(*weather.hourly_units).evapotranspiration));
+				}
+				else if (widget->fields[i] == "hourly.et0faoevapotranspiration" && (*weather.hourly).et0_fao_evapotranspiration.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).et0_fao_evapotranspiration);
+					widget->units.push_back(new string(*(*weather.hourly_units).et0_fao_evapotranspiration));
+				}
+				else if (widget->fields[i] == "hourly.vaporpressuredeficit" && (*weather.hourly).vapor_pressure_deficit.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).vapor_pressure_deficit);
+					widget->units.push_back(new string(*(*weather.hourly_units).vapor_pressure_deficit));
+				}
+				else if (widget->fields[i] == "hourly.windspeed10m" && (*weather.hourly).windspeed_10m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).windspeed_10m);
+					widget->units.push_back(new string(*(*weather.hourly_units).windspeed_10m));
+				}
+				else if (widget->fields[i] == "hourly.windspeed80m" && (*weather.hourly).windspeed_80m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).windspeed_80m);
+					widget->units.push_back(new string(*(*weather.hourly_units).windspeed_80m));
+				}
+				else if (widget->fields[i] == "hourly.windspeed120m" && (*weather.hourly).windspeed_120m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).windspeed_120m);
+					widget->units.push_back(new string(*(*weather.hourly_units).windspeed_120m));
+				}
+				else if (widget->fields[i] == "hourly.windspeed180m" && (*weather.hourly).windspeed_180m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).windspeed_180m);
+					widget->units.push_back(new string(*(*weather.hourly_units).windspeed_180m));
+				}
+				else if (widget->fields[i] == "hourly.winddirection10m" && (*weather.hourly).winddirection_10m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).winddirection_10m);
+					widget->units.push_back(new string(*(*weather.hourly_units).winddirection_10m));
+				}
+				else if (widget->fields[i] == "hourly.winddirection80m" && (*weather.hourly).winddirection_80m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).winddirection_80m);
+					widget->units.push_back(new string(*(*weather.hourly_units).winddirection_80m));
+				}
+				else if (widget->fields[i] == "hourly.winddirection120m" && (*weather.hourly).winddirection_120m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).winddirection_120m);
+					widget->units.push_back(new string(*(*weather.hourly_units).winddirection_120m));
+				}
+				else if (widget->fields[i] == "hourly.winddirection180m" && (*weather.hourly).winddirection_180m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).winddirection_180m);
+					widget->units.push_back(new string(*(*weather.hourly_units).winddirection_180m));
+				}
+				else if (widget->fields[i] == "hourly.windgusts10m" && (*weather.hourly).windgusts_10m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).windgusts_10m);
+					widget->units.push_back(new string(*(*weather.hourly_units).windgusts_10m));
+				}
+				else if (widget->fields[i] == "hourly.temperature80m" && (*weather.hourly).temperature_80m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).temperature_80m);
+					widget->units.push_back(new string(*(*weather.hourly_units).temperature_80m));
+				}
+				else if (widget->fields[i] == "hourly.temperature120m" && (*weather.hourly).temperature_120m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).temperature_120m);
+					widget->units.push_back(new string(*(*weather.hourly_units).temperature_120m));
+				}
+				else if (widget->fields[i] == "hourly.temperature180m" && (*weather.hourly).temperature_180m.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).temperature_180m);
+					widget->units.push_back(new string(*(*weather.hourly_units).temperature_180m));
+				}
+				else if (widget->fields[i] == "hourly.soiltemperature0cm" && (*weather.hourly).soil_temperature_0cm.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).soil_temperature_0cm);
+					widget->units.push_back(new string(*(*weather.hourly_units).soil_temperature_0cm));
+				}
+				else if (widget->fields[i] == "hourly.soiltemperature6cm" && (*weather.hourly).soil_temperature_6cm.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).soil_temperature_6cm);
+					widget->units.push_back(new string(*(*weather.hourly_units).soil_temperature_6cm));
+				}
+				else if (widget->fields[i] == "hourly.soiltemperature18cm" && (*weather.hourly).soil_temperature_18cm.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).soil_temperature_18cm);
+					widget->units.push_back(new string(*(*weather.hourly_units).soil_temperature_18cm));
+				}
+				else if (widget->fields[i] == "hourly.soiltemperature54cm" && (*weather.hourly).soil_temperature_54cm.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).soil_temperature_54cm);
+					widget->units.push_back(new string(*(*weather.hourly_units).soil_temperature_54cm));
+				}
+				else if (widget->fields[i] == "hourly.soilmoisture01cm" && (*weather.hourly).soil_moisture_0_1cm.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).soil_moisture_0_1cm);
+					widget->units.push_back(new string(*(*weather.hourly_units).soil_moisture_0_1cm));
+				}
+				else if (widget->fields[i] == "hourly.soilmoisture13cm" && (*weather.hourly).soil_moisture_1_3cm.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).soil_moisture_1_3cm);
+					widget->units.push_back(new string(*(*weather.hourly_units).soil_moisture_1_3cm));
+				}
+				else if (widget->fields[i] == "hourly.soilmoisture39cm" && (*weather.hourly).soil_moisture_3_9cm.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).soil_moisture_3_9cm);
+					widget->units.push_back(new string(*(*weather.hourly_units).soil_moisture_3_9cm));
+				}
+				else if (widget->fields[i] == "hourly.soil_moisture927cm" && (*weather.hourly).soil_moisture_9_27cm.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).soil_moisture_9_27cm);
+					widget->units.push_back(new string(*(*weather.hourly_units).soil_moisture_9_27cm));
+				}
+				else if (widget->fields[i] == "hourly.soilmoisture2781cm" && (*weather.hourly).soil_moisture_27_81cm.has_value())
+				{
+					data->v = new vector<double>(*(*weather.hourly).soil_moisture_27_81cm);
+					widget->units.push_back(new string(*(*weather.hourly_units).soil_moisture_27_81cm));
+				}
+				else widget->units.push_back(new string(""));
 
 				widget->data[i].push_back(data);
 			}
@@ -121,4 +374,5 @@ Data::~Data()
 	delete this->s;
 	delete this->d;
 	delete this->i;
+	delete this->v;
 }

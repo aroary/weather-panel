@@ -88,11 +88,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	// Configurations and settings for the app.
 	static std::fstream  configFile("weather.conf", std::ios::out | std::ios::in | std::ios::app);
 
-	static Dashboard     dashboard;   // Current dashboard to work with.
-	static RECT          client;      // Window client area.
-	static LPPOINT       cursor;      // Current cursor position.
-	static HPEN          pen;         // Main pen.
-	static HBRUSH        brush;       // Main brush.
+	static Dashboard  dashboard;  // Current dashboard to work with.
+	static RECT       client;     // Window client area.
+	static POINT      cursor;     // Current cursor position.
+	static HPEN       pen;        // Main pen.
+	static HBRUSH     brush;      // Main brush.
+	static int        box = 0;    // Box size for grid.
+
+	static Widget* drag = nullptr; // Dragging widgets.
+	static int resize = WD_NORESIZE;
 
 	switch (message)
 	{
@@ -115,9 +119,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			dashboard.update();
 
 			// Repaint window.
-			InvalidateRect(hWnd, &client, true);
+			InvalidateRect(hWnd, &client, false);
 
-			MessageBox(NULL, L"Dashboard updated.", L"Sync", MB_ICONINFORMATION | MB_OK);
+			MessageBox(NULL, L"Dashboard syncronized.", L"Sync", MB_ICONINFORMATION | MB_OK);
+			break;
+
+		case ID_EDIT_RELOAD:
+			// SendMessage(hWnd, WM_CREATE, NULL, NULL);
+			MessageBox(NULL, L"Dashboard reloaded.", L"Load", MB_ICONINFORMATION | MB_OK);
 			break;
 
 		default:
@@ -127,8 +136,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 
 	case WM_MOUSEMOVE:
-		GetCursorPos(cursor);
-		break;
+	{
+		GetCursorPos(&cursor);
+		ScreenToClient(hWnd, &cursor);
+		InvalidateRect(hWnd, &client, false);
+	}
+	break;
 
 	case WM_SIZE:
 		GetClientRect(hWnd, &client);
@@ -138,25 +151,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
+		HDC mdc = CreateCompatibleDC(hdc);
+		HBITMAP bmp = CreateCompatibleBitmap(hdc, client.right - client.left, client.bottom - client.top);
+		SelectObject(mdc, bmp);
 
-		SetBkMode(hdc, TRANSPARENT);
+		SetBkMode(mdc, TRANSPARENT);
 
-		SelectObject(hdc, pen);
+		SelectObject(mdc, pen);
+		SelectObject(mdc, brush);
 
-		int box = 20;
+		// Background
+		Rectangle(mdc, client.left, client.top, client.right, client.bottom);
+
+		SetTextAlign(mdc, TA_RIGHT | TA_TOP);
+		std::wstring x = std::to_wstring(cursor.x).c_str();
+		std::wstring y = std::to_wstring(cursor.y).c_str();
+		TextOut(mdc, client.right, 0, x.c_str(), x.size());
+		TextOut(mdc, client.right, 20, y.c_str(), y.size());
 
 		// Grid lines
 		for (int i = 0; i < client.right - client.left; i += box)
 		{
-			MoveToEx(hdc, i, client.top, NULL);
-			LineTo(hdc, i, client.bottom - client.top);
+			MoveToEx(mdc, i, client.top, NULL);
+			LineTo(mdc, i, client.bottom - client.top);
 		}
 
 		// Grid lines
 		for (int i = 0; i < client.bottom - client.top; i += box)
 		{
-			MoveToEx(hdc, client.left, i, NULL);
-			LineTo(hdc, client.right - client.left, i);
+			MoveToEx(mdc, client.left, i, NULL);
+			LineTo(mdc, client.right - client.left, i);
 		}
 
 		// Draw widgets
@@ -166,9 +190,44 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			UINT height = (widget->rect.bottom - widget->rect.top);
 			UINT pwidth = width * box;
 			UINT pheight = height * box;
+			RECT scaledRect{ widget->rect.left * box, widget->rect.top * box, widget->rect.right * box, widget->rect.bottom * box };
 
-			widget->rect;
-			Rectangle(hdc, widget->rect.left * box, widget->rect.top * box, widget->rect.right * box, widget->rect.bottom * box);
+			SelectObject(mdc, pen);
+
+			Rectangle(mdc, scaledRect.left, scaledRect.top, scaledRect.right, scaledRect.bottom);
+
+			// Mouse events
+			if (cursor.x > scaledRect.left && cursor.x < scaledRect.right && cursor.y > scaledRect.top && cursor.y < scaledRect.top + box)
+			{
+				// Move
+				if ((GetKeyState(VK_LBUTTON) & 0x8000) != 0 && drag == nullptr)
+					drag = widget;
+			}
+			else if (cursor.x > scaledRect.left && cursor.x < scaledRect.right && cursor.y > scaledRect.bottom - box && cursor.y < scaledRect.bottom)
+			{
+				// Resize down
+				if ((GetKeyState(VK_LBUTTON) & 0x8000) != 0 && drag == nullptr)
+				{
+					drag = widget;
+					resize = WD_SOUTHRESIZE;
+				}
+			}
+
+			// Resize left
+			if (cursor.x > scaledRect.left && cursor.x < scaledRect.left + box && cursor.y > scaledRect.top && cursor.y < scaledRect.bottom)
+				if ((GetKeyState(VK_LBUTTON) & 0x8000) != 0 && drag == nullptr)
+				{
+					drag = widget;
+					resize |= WD_WESTRESIZE;
+				}
+
+			// Resize left
+			if (cursor.x > scaledRect.right - box && cursor.x < scaledRect.right + box && cursor.y > scaledRect.top && cursor.y < scaledRect.bottom)
+				if ((GetKeyState(VK_LBUTTON) & 0x8000) != 0 && drag == nullptr)
+				{
+					drag = widget;
+					resize |= WD_EASTRESIZE;
+				}
 
 			// Draw text values
 			for (int i = 0; i < widget->fields.size(); i++)
@@ -192,14 +251,101 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					value = std::to_wstring(*widget->data[i][0]->i);
 				else;
 
-				SetTextAlign(hdc, TA_CENTER);
-				TextOut(hdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box, title.c_str(), lstrlen(title.c_str()));
+				HPEN heading = CreatePen(PS_DASH, 1, BLACK_PEN);
 
-				SetTextAlign(hdc, TA_CENTER | TA_BASELINE);
-				TextOut(hdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + pheight / 2, value.c_str(), lstrlen(value.c_str()));
+				SelectObject(mdc, heading);
+
+				// Draw title
+				SetTextAlign(mdc, TA_CENTER);
+				TextOut(mdc, scaledRect.left + pwidth / 2, scaledRect.top, title.c_str(), lstrlen(title.c_str()));
+
+				// Underline
+				MoveToEx(mdc, scaledRect.left, (scaledRect.top) + box, NULL);
+				LineTo(mdc, scaledRect.right, (scaledRect.top) + box);
+
+				// Draw data
+				SetTextAlign(mdc, TA_CENTER | TA_BASELINE);
+				TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + pheight / 2, value.c_str(), lstrlen(value.c_str()));
+
+				DeleteObject(heading);
 			}
 		}
 
+		// Draggage
+		if ((GetKeyState(VK_LBUTTON) & 0x8000) != 0 && drag != nullptr)
+		{
+			// Drag
+
+			UINT width = (drag->rect.right - drag->rect.left) * box;
+			UINT height = (drag->rect.bottom - drag->rect.top) * box;
+			POINT offset{ ((cursor.x - width / 2) % box), ((cursor.y - box / 2) % box) };
+			RECT position{ drag->rect.left * box, drag->rect.top * box, drag->rect.right * box, drag->rect.bottom * box };
+
+			if (resize)
+			{
+				if (resize & WD_SOUTHRESIZE)
+					position.bottom = cursor.y - cursor.y % box;
+
+				if (resize & WD_EASTRESIZE)
+					position.right = cursor.x - cursor.x % box;
+
+				if (resize & WD_WESTRESIZE)
+					position.left = cursor.x - cursor.x % box;
+			}
+			else
+			{
+				position.left = (cursor.x - width / 2) - offset.x;
+				position.top = (cursor.y - box / 2) - offset.y;
+				position.right = (cursor.x + width / 2) - offset.x;
+				position.bottom = (cursor.y + height - box / 2) - offset.y;
+			}
+
+			InvertRect(mdc, &position);
+		}
+		else if (drag != nullptr)
+		{
+			UINT width = (drag->rect.right - drag->rect.left) * box;
+			UINT height = (drag->rect.bottom - drag->rect.top) * box;
+			POINT offset{ ((cursor.x - width / 2) % box), ((cursor.y - box / 2) % box) };
+			RECT position{ drag->rect.left * box, drag->rect.top * box, drag->rect.right * box, drag->rect.bottom * box };
+
+			if (resize)
+			{
+				if (resize & WD_SOUTHRESIZE)
+					position.bottom = cursor.y - offset.y;
+
+				if (resize & WD_EASTRESIZE)
+					position.right = cursor.x - offset.x;
+
+				if (resize & WD_WESTRESIZE)
+					position.left = cursor.x - offset.x;
+
+				resize = WD_NORESIZE;
+			}
+			else
+			{
+				// Drop
+				position.left = (cursor.x - width / 2) - offset.x;
+				position.top = (cursor.y - box / 2) - offset.y;
+				position.right = (cursor.x + width / 2) - offset.x;
+				position.bottom = (cursor.y + height - box / 2) - offset.y;
+			}
+
+			position.left /= box;
+			position.top /= box;
+			position.right /= box;
+			position.bottom /= box;
+
+			dashboard.replace(drag->id, position);
+
+			drag = nullptr;
+		}
+		else
+			drag = nullptr;
+
+		BitBlt(hdc, 0, 0, client.right - client.left, client.bottom - client.top, mdc, 0, 0, SRCCOPY);
+		DeleteObject(mdc);
+		DeleteObject(bmp);
 		EndPaint(hWnd, &ps);
 	}
 	break;
@@ -207,15 +353,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 	{
 		GetClientRect(hWnd, &client);
+		GetCursorPos(&cursor);
+		ScreenToClient(hWnd, &cursor);
 
-		// Init config file
-		std::string line; // Current line.
-
-		configFile.seekg(0);
-
+		// Init config
 		if (configFile.is_open())
 		{
-			INIT:
+			std::string line; // Current line.
+
+			configFile.seekg(0);
+
+		INIT:
 			if (std::getline(configFile, line) && line == "0")
 				while (std::getline(configFile, line))
 				{
@@ -235,8 +383,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 						dashboard.widgets.push_back(widget);
 					}
+					else if (command == "box")
+						iss >> box;
+					else if (command == "timezone")
+						iss >> dashboard.weather.timezone;
+					else if (command == "latitude")
+						iss >> dashboard.weather.latitude;
+					else if (command == "longitude")
+						iss >> dashboard.weather.longitude;
+					else;
 				}
-			else {
+			else
+			{
 				MessageBox(NULL, L"Problem reading configurations.\nPress OK to reset app configuration.", L"Configuration Error", MB_ICONEXCLAMATION | MB_OK);
 
 				configFile.write("0", sizeof("0"));
@@ -245,26 +403,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				goto INIT;
 			}
-
-			configFile.close();
 		}
 		else
 			MessageBox(NULL, L"Faild to read configuration file.", L"Configuration Error", MB_ICONERROR | MB_OK);
 
+		// Initialize dashboard data.
 		dashboard.weather.current_weather = true;
-		dashboard.weather.timezone = "GMT";
-		dashboard.weather.latitude = 45.67;
-		dashboard.weather.longitude = -76.54;
 		dashboard.update();
 
-		// Init GDI tools
-		pen = CreatePen(PS_SOLID, 2, RGB(200, 200, 200));
-		brush = CreateSolidBrush(RGB(10, 100, 200));
+		// Default box size.
+		box = 20;
+
+		// Initialize GDI tools.
+		pen = CreatePen(PS_SOLID, 2, RGB(191, 191, 191));
+		brush = CreateSolidBrush(RGB(255, 255, 255));
 	}
 	break;
 
 	case WM_DESTROY:
 		DeleteObject(pen);
+		DeleteObject(brush);
+
+		// Close configuration file handle.
+		configFile.close();
 
 		PostQuitMessage(0);
 		break;

@@ -5,6 +5,11 @@
 #include <iomanip>
 #include "weather-api.h"
 
+#define WD_NORESIZE     0x00000000L  // No resize action.
+#define WD_SOUTHRESIZE  0x00000001L  // Resize down.
+#define WD_EASTRESIZE   0x00000010L  // Resize left.
+#define WD_WESTRESIZE   0x00000100L  // Resize right.
+
 using std::string;
 using std::vector;
 
@@ -26,7 +31,6 @@ class Widget
 {
 public:
 	Widget(int, RECT);
-	void replace(Dashboard*, int, RECT);
 
 	int                    id;      // The index of the widget on the dashboard (vector.size()).
 	RECT                   rect;    // The widget size and location.

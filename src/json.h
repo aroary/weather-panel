@@ -249,15 +249,6 @@ namespace json {
 }
 
 namespace json {
-	void from_json(const json& j, DailyUnits& x);
-	void to_json(json& j, const DailyUnits& x);
-
-	void from_json(const json& j, HourlyUnits& x);
-	void to_json(json& j, const HourlyUnits& x);
-
-	void from_json(const json& j, Weather& x);
-	void to_json(json& j, const Weather& x);
-
 	inline void from_json(const json& j, DailyUnits& x) {
 		x.time = get_stack_optional<std::string>(j, "time");
 		x.weathercode = get_stack_optional<std::string>(j, "weathercode");

@@ -6,7 +6,7 @@ Widget::Widget(int id, RECT rect) : rect{ rect.left, rect.top, rect.right, rect.
 
 void Dashboard::replace(int id, RECT rect)
 {
-	this->widgets.at(id)->rect = rect;
+	this->widgets.at(id)->rect = { rect.left, rect.top, rect.right, rect.bottom };
 }
 
 void Dashboard::update()
@@ -362,11 +362,6 @@ void Dashboard::update()
 				widget->data[i].push_back(data);
 			}
 		}
-}
-
-void Widget::replace(Dashboard* dashboard, int id, RECT rect)
-{
-	dashboard->replace(id, rect);
 }
 
 Data::~Data()

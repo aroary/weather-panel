@@ -21,9 +21,9 @@ namespace api
 		std::string url(std::string, std::string);
 		json::Weather weather(std::string url);
 
-		float        latitude;                      // Geographical WGS84 coordinate of the location
-		float        longitude;                     // Geographical WGS84 coordinate of the location
-		float        elevation;                     // The elevation used for statistical downscaling
+		float        latitude = 0;                  // Geographical WGS84 coordinate of the location
+		float        longitude = 0;                 // Geographical WGS84 coordinate of the location
+		float        elevation = NAN;               // The elevation used for statistical downscaling
 		bool         current_weather = false;       // Include current weather conditions in the JSON output.
 		std::string  temperature_unit = "celsius";  // If fahrenheit is set, all temperature values are converted to Fahrenheit.
 		std::string  windspeed_unit = "kmh";        // Other wind speed speed units: ms, mph and kn.
@@ -33,9 +33,9 @@ namespace api
 		int          past_days = 0;                 // If past_days is set, yesterday or the day before yesterday data are also returned.
 		int          forecast_days = 7;             // Per default, only 7 days are returned. Up to 16 days of forecast are possible.
 		std::string  cell_selection = "land";       // Set a preference how grid-cells are selected.
-		
-		Hourly* hourly; // A list of weather variables which should be returned
-		Daily* daily; // A list of daily weather variable aggregations which should be returned
+
+		Hourly* hourly = nullptr; // A list of weather variables which should be returned
+		Daily* daily = nullptr; // A list of daily weather variable aggregations which should be returned
 	};
 
 	class Hourly

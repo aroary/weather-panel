@@ -21,7 +21,7 @@ class Dashboard
 {
 public:
 	vector<Widget*> widgets;
-	void replace(int, RECT);
+	bool replace(int, RECT);
 	void update();
 
 	api::Weather weather;

@@ -4,9 +4,21 @@ Widget::Widget(int id, RECT rect) : rect{ rect.left, rect.top, rect.right, rect.
 	this->id = id;
 }
 
-void Dashboard::replace(int id, RECT rect)
+bool Dashboard::replace(int id, RECT rect)
 {
+	// Validate new widget size.
+	if (rect.right - rect.left < 2 || rect.bottom - rect.top < 2)
+		return false;
+
+	// Check for intersection with existing widgets.
+	for (Widget* widget : this->widgets)
+		if (widget->id != id && rect.left < widget->rect.right && rect.right > widget->rect.left && rect.top < widget->rect.bottom && rect.bottom > widget->rect.top)
+			return false;
+
+	// Relocate to new position.
 	this->widgets.at(id)->rect = { rect.left, rect.top, rect.right, rect.bottom };
+
+	return true;
 }
 
 void Dashboard::update()

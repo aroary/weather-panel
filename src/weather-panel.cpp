@@ -96,7 +96,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static int        box = 0;    // Box size for grid.
 
 	static Widget* drag = nullptr; // Dragging widgets.
-	static int resize = WD_NORESIZE;
+	static int resize = WD_NORESIZE; // Resizing widgets.
 
 	switch (message)
 	{
@@ -264,8 +264,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				LineTo(mdc, scaledRect.right, (scaledRect.top) + box);
 
 				// Draw data
-				SetTextAlign(mdc, TA_CENTER | TA_BASELINE);
-				TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + pheight / 2, value.c_str(), lstrlen(value.c_str()));
+				SetTextAlign(mdc, TA_CENTER);
+				TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + (pheight + box / 2) / 2, value.c_str(), lstrlen(value.c_str()));
 
 				DeleteObject(heading);
 			}
@@ -284,10 +284,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (resize)
 			{
 				if (resize & WD_SOUTHRESIZE)
-					position.bottom = cursor.y - cursor.y % box;
+					position.bottom = cursor.y - cursor.y % box + box;
 
 				if (resize & WD_EASTRESIZE)
-					position.right = cursor.x - cursor.x % box;
+					position.right = cursor.x - cursor.x % box + box;
 
 				if (resize & WD_WESTRESIZE)
 					position.left = cursor.x - cursor.x % box;
@@ -312,13 +312,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (resize)
 			{
 				if (resize & WD_SOUTHRESIZE)
-					position.bottom = cursor.y - offset.y;
+					position.bottom = cursor.y - cursor.y % box + box;
 
 				if (resize & WD_EASTRESIZE)
-					position.right = cursor.x - offset.x;
+					position.right = cursor.x - cursor.x % box + box;
 
 				if (resize & WD_WESTRESIZE)
-					position.left = cursor.x - offset.x;
+					position.left = cursor.x - cursor.x % box;
 
 				resize = WD_NORESIZE;
 			}

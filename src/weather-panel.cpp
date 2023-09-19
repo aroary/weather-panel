@@ -3,6 +3,7 @@
 #include <vector>
 #include "framework.h"
 #include "weather-panel.h"
+#include "dialog.h"
 #include "weather-api.h"
 #include "widget.h"
 
@@ -90,9 +91,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	// Configurations and settings for the app.
-	static std::fstream  configFile("weather.conf", std::ios::out | std::ios::in | std::ios::app);
-
 	static Dashboard  dashboard;  // Current dashboard to work with.
 	static RECT       client;     // Window client area.
 	static POINT      cursor;     // Current cursor position.
@@ -130,8 +128,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case ID_EDIT_RELOAD:
-			// SendMessage(hWnd, WM_CREATE, NULL, NULL);
+			SendMessage(hWnd, WM_CREATE, NULL, NULL);
 			MessageBox(NULL, L"Dashboard reloaded.", L"Load", MB_ICONINFORMATION | MB_OK);
+			break;
+
+		case ID_EDIT_SAVE:
+			dashboard.save();
+			break;
+
+		case ID_EDIT_SETTINGS:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hWnd, Settings);
 			break;
 
 		default:
@@ -343,13 +349,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		GetCursorPos(&cursor);
 		ScreenToClient(hWnd, &cursor);
 
+		std::fstream configFile("weather.conf", std::ios::out | std::ios::in | std::ios::app);
+
 		// Init config
 		if (configFile.is_open())
 		{
 			string line; // Current line.
-
-			configFile.seekg(0);
-
 			if (std::getline(configFile, line) && line == "0")
 				while (std::getline(configFile, line))
 				{
@@ -377,18 +382,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						iss >> dashboard.weather.latitude;
 					else if (command == "longitude")
 						iss >> dashboard.weather.longitude;
+					else if (command == "elevation")
+						iss >> dashboard.weather.elevation;
+					else if (command == "temperatureunit")
+						iss >> dashboard.weather.temperature_unit;
+					else if (command == "windspeedunit")
+						iss >> dashboard.weather.windspeed_unit;
+					else if (command == "precipitationunit")
+						iss >> dashboard.weather.precipitation_unit;
+					else if (command == "timeformat")
+						iss >> dashboard.weather.timeformat;
+					else if (command == "cellselection")
+						iss >> dashboard.weather.cell_selection;
 					else;
 				}
 			else
 			{
-				MessageBox(NULL, L"Problem reading configurations.\nPress OK to reset app configuration.", L"Configuration Error", MB_ICONEXCLAMATION | MB_OK);
+				MessageBox(NULL, L"Problem reading configurations.\nPress OK to generate default configuration.", L"Configuration Error", MB_ICONEXCLAMATION | MB_OK);
 
-				configFile.flush();
-				configFile.seekg(0);
-				configFile.write("0", sizeof("0"));
-				configFile.flush();
-				configFile.seekg(0);
+				configFile.close();
+				configFile.open("weather.conf", std::ofstream::out | std::ofstream::trunc);
+				configFile.write("0\n", sizeof("0\n"));
 			}
+
+			configFile.close();
 		}
 		else
 			MessageBox(NULL, L"Faild to read configuration file.", L"Configuration Error", MB_ICONERROR | MB_OK);
@@ -410,9 +427,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		DeleteObject(pen);
 		DeleteObject(brush);
 
-		// Close configuration file handle.
-		configFile.close();
-
 		PostQuitMessage(0);
 		break;
 
@@ -420,24 +434,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return 0;
-}
-
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		return (INT_PTR)TRUE;
-
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-		{
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
-		}
-		break;
-	}
-	return (INT_PTR)FALSE;
 }

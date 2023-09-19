@@ -21,6 +21,45 @@ bool Dashboard::replace(int id, RECT rect)
 	return true;
 }
 
+bool Dashboard::save()
+{
+	using std::endl;
+
+	std::fstream file("weather.conf", std::ofstream::out | std::ofstream::trunc);
+
+	if (file.is_open())
+	{
+		// 0
+		file << "0" << endl;
+
+		// Save data
+		file << "latitude " << this->weather.latitude << endl;
+		file << "longitude " << this->weather.longitude << endl;
+		file << "elevation " << this->weather.elevation << endl;
+		file << "temperatureunit " << this->weather.temperature_unit << endl;
+		file << "windspeedunit " << this->weather.windspeed_unit << endl;
+		file << "precipitationunit " << this->weather.precipitation_unit << endl;
+		file << "timeformat " << this->weather.timeformat << endl;
+		file << "timezone " << this->weather.timezone << endl;
+		file << "cellselection " << this->weather.cell_selection << endl;
+
+		// Save widgets
+		for (Widget* widget : this->widgets)
+		{
+			file << "widget " << widget->rect.left << " " << widget->rect.top << " " << widget->rect.right << " " << widget->rect.bottom;
+
+			for (std::string field : widget->fields)
+				file << " " << field;
+
+			file << endl;
+		}
+	}
+	else
+		return false;
+
+	return true;
+}
+
 void Dashboard::update()
 {
 	// Clear api parameters.

@@ -42,3 +42,4 @@ Debug/
 
 # App configuration
 weather.conf
+*.conf

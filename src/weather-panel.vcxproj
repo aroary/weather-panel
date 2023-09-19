@@ -137,6 +137,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="dialog.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="json.h" />
     <ClInclude Include="Resource.h" />
@@ -146,6 +147,7 @@
     <ClInclude Include="widget.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="dialog.cpp" />
     <ClCompile Include="weather-api.cpp" />
     <ClCompile Include="weather-panel.cpp" />
     <ClCompile Include="widget.cpp" />

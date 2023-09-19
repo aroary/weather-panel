@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <fstream>
 #include <vector>
 #include <iomanip>
 #include "weather-api.h"
@@ -22,6 +23,7 @@ class Dashboard
 public:
 	vector<Widget*> widgets;
 	bool replace(int, RECT);
+	bool save();
 	void update();
 
 	api::Weather weather;

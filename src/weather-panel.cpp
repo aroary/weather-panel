@@ -1,11 +1,16 @@
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "framework.h"
 #include "weather-panel.h"
 #include "weather-api.h"
 #include "widget.h"
 
 #define MAX_LOADSTRING 100
+
+using std::string;
+using std::wstring;
+using std::vector;
 
 // Global Variables:
 HINSTANCE  hInst;                          // current instance
@@ -163,12 +168,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Background
 		Rectangle(mdc, client.left, client.top, client.right, client.bottom);
 
-		SetTextAlign(mdc, TA_RIGHT | TA_TOP);
-		std::wstring x = std::to_wstring(cursor.x).c_str();
-		std::wstring y = std::to_wstring(cursor.y).c_str();
-		TextOut(mdc, client.right, 0, x.c_str(), x.size());
-		TextOut(mdc, client.right, 20, y.c_str(), y.size());
-
 		// Grid lines
 		for (int i = 0; i < client.right - client.left; i += box)
 		{
@@ -229,34 +228,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					resize |= WD_EASTRESIZE;
 				}
 
+			SetTextAlign(mdc, TA_CENTER);
+
 			// Draw text values
 			for (int i = 0; i < widget->fields.size(); i++)
 			{
-				std::wstring title = std::wstring(widget->fields[i].begin(), widget->fields[i].end());
-				std::wstring value;
+				wstring title = wstring(widget->fields[i].begin(), widget->fields[i].end());
+				wstring value;
 
 				// Find value and assign it to `value`.
 				if (widget->data[i][0]->s != nullptr)
 				{
-					std::string data = *widget->data[i][0]->s;
-					value = std::wstring(data.begin(), data.end());
+					string data = *widget->data[i][0]->s;
+					value = wstring(data.begin(), data.end());
 				}
 				else if (widget->data[i][0]->d != nullptr)
 				{
 					value = std::to_wstring(*widget->data[i][0]->d);
-					value.erase(value.find_last_not_of('0') + 1, std::string::npos);
-					value.erase(value.find_last_not_of('.') + 1, std::string::npos);
+					value.erase(value.find_last_not_of('0') + 1, string::npos);
+					value.erase(value.find_last_not_of('.') + 1, string::npos);
 				}
 				else if (widget->data[i][0]->i != nullptr)
 					value = std::to_wstring(*widget->data[i][0]->i);
-				else;
+				else if (widget->data[i][0]->v != nullptr)
+				{
+					vector<double> data(*widget->data[i][0]->v);
+					for (UINT i = 0; i < height - 1 && i < data.size(); i++)
+					{
+						wstring value = std::to_wstring(data[i]);
+						value.erase(value.find_last_not_of('0') + 1, string::npos);
+						value.erase(value.find_last_not_of('.') + 1, string::npos);
+
+						TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + box * i + box, value.c_str(), lstrlen(value.c_str()));
+					}
+				}
 
 				HPEN heading = CreatePen(PS_DASH, 1, BLACK_PEN);
 
 				SelectObject(mdc, heading);
 
 				// Draw title
-				SetTextAlign(mdc, TA_CENTER);
 				TextOut(mdc, scaledRect.left + pwidth / 2, scaledRect.top, title.c_str(), lstrlen(title.c_str()));
 
 				// Underline
@@ -264,7 +275,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				LineTo(mdc, scaledRect.right, (scaledRect.top) + box);
 
 				// Draw data
-				SetTextAlign(mdc, TA_CENTER);
 				TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + (pheight + box / 2) / 2, value.c_str(), lstrlen(value.c_str()));
 
 				DeleteObject(heading);
@@ -272,13 +282,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 
 		// Draggage
-		if ((GetKeyState(VK_LBUTTON) & 0x8000) != 0 && drag != nullptr)
+		if (drag != nullptr)
 		{
-			// Drag
-
-			UINT width = (drag->rect.right - drag->rect.left) * box;
-			UINT height = (drag->rect.bottom - drag->rect.top) * box;
-			POINT offset{ ((cursor.x - width / 2) % box), ((cursor.y - box / 2) % box) };
 			RECT position{ drag->rect.left * box, drag->rect.top * box, drag->rect.right * box, drag->rect.bottom * box };
 
 			if (resize)
@@ -290,58 +295,40 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					position.right = cursor.x - cursor.x % box + box;
 
 				if (resize & WD_WESTRESIZE)
-					position.left = cursor.x - cursor.x % box;
+					position.left = static_cast<LONG>(cursor.x - cursor.x % box);
 			}
 			else
 			{
+				UINT   width = (drag->rect.right - drag->rect.left) * box;
+				UINT   height = (drag->rect.bottom - drag->rect.top) * box;
+				POINT  offset{ static_cast<LONG>(((cursor.x - width / 2) % box) - box), static_cast<LONG>((cursor.y - box / 2) % box) };
+
 				position.left = (cursor.x - width / 2) - offset.x;
 				position.top = (cursor.y - box / 2) - offset.y;
 				position.right = (cursor.x + width / 2) - offset.x;
 				position.bottom = (cursor.y + height - box / 2) - offset.y;
 			}
 
-			InvertRect(mdc, &position);
-		}
-		else if (drag != nullptr)
-		{
-			UINT width = (drag->rect.right - drag->rect.left) * box;
-			UINT height = (drag->rect.bottom - drag->rect.top) * box;
-			POINT offset{ ((cursor.x - width / 2) % box), ((cursor.y - box / 2) % box) };
-			RECT position{ drag->rect.left * box, drag->rect.top * box, drag->rect.right * box, drag->rect.bottom * box };
-
-			if (resize)
+			if ((GetKeyState(VK_LBUTTON) & 0x8000) != 0) // Drag
+				InvertRect(mdc, &position);
+			else // Drop
 			{
-				if (resize & WD_SOUTHRESIZE)
-					position.bottom = cursor.y - cursor.y % box + box;
+				// Scale
+				position.left /= box;
+				position.top /= box;
+				position.right /= box;
+				position.bottom /= box;
 
-				if (resize & WD_EASTRESIZE)
-					position.right = cursor.x - cursor.x % box + box;
-
-				if (resize & WD_WESTRESIZE)
-					position.left = cursor.x - cursor.x % box;
-
+				// Reset resize flag
 				resize = WD_NORESIZE;
+
+				// Move widget to new place
+				dashboard.replace(drag->id, position);
+
+				// Reset the drag flag
+				drag = nullptr;
 			}
-			else
-			{
-				// Drop
-				position.left = (cursor.x - width / 2) - offset.x;
-				position.top = (cursor.y - box / 2) - offset.y;
-				position.right = (cursor.x + width / 2) - offset.x;
-				position.bottom = (cursor.y + height - box / 2) - offset.y;
-			}
-
-			position.left /= box;
-			position.top /= box;
-			position.right /= box;
-			position.bottom /= box;
-
-			dashboard.replace(drag->id, position);
-
-			drag = nullptr;
 		}
-		else
-			drag = nullptr;
 
 		BitBlt(hdc, 0, 0, client.right - client.left, client.bottom - client.top, mdc, 0, 0, SRCCOPY);
 		DeleteObject(mdc);
@@ -359,16 +346,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Init config
 		if (configFile.is_open())
 		{
-			std::string line; // Current line.
+			string line; // Current line.
 
 			configFile.seekg(0);
 
-		INIT:
 			if (std::getline(configFile, line) && line == "0")
 				while (std::getline(configFile, line))
 				{
 					std::istringstream iss(line);
-					std::string command;
+					string command;
 					iss >> command;
 					if (command == "widget")
 					{
@@ -377,7 +363,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 						Widget* widget = new Widget((int)dashboard.widgets.size(), position);
 
-						std::string field;
+						string field;
 						while (iss >> field)
 							widget->fields.push_back(field);
 
@@ -397,11 +383,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				MessageBox(NULL, L"Problem reading configurations.\nPress OK to reset app configuration.", L"Configuration Error", MB_ICONEXCLAMATION | MB_OK);
 
-				configFile.write("0", sizeof("0"));
-
+				configFile.flush();
 				configFile.seekg(0);
-
-				goto INIT;
+				configFile.write("0", sizeof("0"));
+				configFile.flush();
+				configFile.seekg(0);
 			}
 		}
 		else

@@ -69,7 +69,7 @@ json::Weather api::Weather::weather(std::string url)
 	if (!pipe)
 		throw std::runtime_error("popen failed");
 
-	while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+	while (fgets(buffer.data(), (int)buffer.size(), pipe.get()) != nullptr)
 		result += buffer.data();
 
 	return nlohmann::json::parse(result);
@@ -128,13 +128,13 @@ std::string api::Hourly::url()
 		url += "cloudcover_mid,";
 
 	if (this->cloudcoverhigh)
-		url += "cloudcover_high";
+		url += "cloudcover_high,";
 
 	if (this->visibility)
 		url += "visibility,";
 
 	if (this->evapotranspiration)
-		url += "evapotranspiration";
+		url += "evapotranspiration,";
 
 	if (this->et0faoevapotranspiration)
 		url += "et0_fao_evapotranspiration,";
@@ -149,7 +149,7 @@ std::string api::Hourly::url()
 		url += "winddirection_10m,winddirection_80m,winddirection_120m,winddirection_180m";
 
 	if (this->windgusts)
-		url += "windgusts_10m";
+		url += "windgusts_10m,";
 
 	return url;
 }

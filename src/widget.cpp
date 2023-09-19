@@ -32,8 +32,72 @@ void Dashboard::update()
 	// Set api parameters from widget data.
 	for (Widget* widget : this->widgets)
 		for (string field : widget->fields)
-			if (field == "hourly.apparenttemperature")
+			if (field == "hourly.temperature2m")
+				this->weather.hourly->temperature = true;
+			else if (field == "hourly.relativehumidity2m")
+				this->weather.hourly->relativehumidity = true;
+			else if (field == "hourly.dewpoint2m")
+				this->weather.hourly->dewpoint = true;
+			else if (field == "hourly.apparenttemperature")
 				this->weather.hourly->apparenttemperature = true;
+			else if (field == "hourly.precipitationprobability")
+				this->weather.hourly->precipitationprobability = true;
+			else if (field == "hourly.precipitation")
+				this->weather.hourly->precipitation = true;
+			else if (field == "hourly.rain")
+				this->weather.hourly->rain = true;
+			else if (field == "hourly.showers")
+				this->weather.hourly->showers = true;
+			else if (field == "hourly.snowfall")
+				this->weather.hourly->snowfall = true;
+			else if (field == "hourly.snowdepth")
+				this->weather.hourly->snowdepth = true;
+			else if (field == "hourly.weathercode")
+				this->weather.hourly->weathercode = true;
+			else if (field == "hourly.pressuremsl")
+				this->weather.hourly->pressuremsl = true;
+			else if (field == "hourly.surfacepressure")
+				this->weather.hourly->surfacepressure = true;
+			else if (field == "hourly.cloudcover")
+				this->weather.hourly->cloudcover = true;
+			else if (field == "hourly.cloudcoverlow")
+				this->weather.hourly->cloudcoverlow = true;
+			else if (field == "hourly.cloudcovermid")
+				this->weather.hourly->cloudcovermid = true;
+			else if (field == "hourly.cloudcoverhigh")
+				this->weather.hourly->cloudcoverhigh = true;
+			else if (field == "hourly.visibility")
+				this->weather.hourly->visibility = true;
+			else if (field == "hourly.evapotranspiration")
+				this->weather.hourly->evapotranspiration = true;
+			else if (field == "hourly.et0faoevapotranspiration")
+				this->weather.hourly->et0faoevapotranspiration = true;
+			else if (field == "hourly.vaporpressuredeficit")
+				this->weather.hourly->vaporpressuredeficit = true;
+			else if (field == "hourly.windspeed10m")
+				this->weather.hourly->windspeed = true;
+			else if (field == "hourly.windspeed80m")
+				this->weather.hourly->windspeed = true;
+			else if (field == "hourly.windspeed120m")
+				this->weather.hourly->windspeed = true;
+			else if (field == "hourly.windspeed180m")
+				this->weather.hourly->windspeed = true;
+			else if (field == "hourly.winddirection10m")
+				this->weather.hourly->winddirection = true;
+			else if (field == "hourly.winddirection80m")
+				this->weather.hourly->winddirection = true;
+			else if (field == "hourly.winddirection120m")
+				this->weather.hourly->winddirection = true;
+			else if (field == "hourly.winddirection180m")
+				this->weather.hourly->winddirection = true;
+			else if (field == "hourly.windgusts10m")
+				this->weather.hourly->windgusts = true;
+			else if (field == "hourly.temperature80m")
+				this->weather.hourly->temperature = true;
+			else if (field == "hourly.temperature120m")
+				this->weather.hourly->temperature = true;
+			else if (field == "hourly.temperature180m")
+				this->weather.hourly->temperature = true;
 			else if (field == "daily.apparenttemperaturemax")
 				this->weather.daily->apparenttemperaturemax = true;
 			else if (field == "daily.apparenttemperaturemin")
@@ -144,11 +208,6 @@ void Dashboard::update()
 				{
 					data->i = new int64_t(*weather.elevation);
 					widget->units.push_back(new string("m"));
-				}
-				else if (widget->fields[i] == "hourly.time" && (*weather.hourly).time.has_value())
-				{
-					data->v = new vector<double>(*(*weather.hourly).time);
-					widget->units.push_back(new string(*(*weather.hourly_units).time));
 				}
 				else if (widget->fields[i] == "hourly.temperature2m" && (*weather.hourly).temperature_2m.has_value())
 				{

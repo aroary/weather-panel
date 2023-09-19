@@ -1,7 +1,9 @@
 #pragma once
 
 #include <optional>
+#pragma warning(push, 0)
 #include "nlohmann/json.hpp"
+#pragma warning(pop)
 
 //  To parse this JSON data, first install
 //
@@ -162,7 +164,7 @@ namespace json {
 	};
 
 	struct Hourly {
-		std::optional<std::vector<double>> time;
+		std::optional<std::vector<std::string>> time;
 		std::optional<std::vector<double>> temperature_2m;
 		std::optional<std::vector<double>> relativehumidity_2m;
 		std::optional<std::vector<double>> dewpoint_2m;
@@ -208,7 +210,7 @@ namespace json {
 	};
 
 	struct Daily {
-		std::optional<std::vector<double>> time;
+		std::optional<std::vector<std::string>> time;
 		std::optional<std::vector<double>> weathercode;
 		std::optional<std::vector<double>> temperature_2m_max;
 		std::optional<std::vector<double>> temperature_2m_min;
@@ -392,7 +394,7 @@ namespace json {
 	}
 
 	inline void from_json(const json& j, Hourly& x) {
-		x.time = get_stack_optional<std::vector<double>>(j, "time");
+		x.time = get_stack_optional<std::vector<std::string>>(j, "time");
 		x.temperature_2m = get_stack_optional<std::vector<double>>(j, "temperature_2m");
 		x.relativehumidity_2m = get_stack_optional<std::vector<double>>(j, "relativehumidity_2m");
 		x.dewpoint_2m = get_stack_optional<std::vector<double>>(j, "dewpoint_2m");
@@ -485,7 +487,7 @@ namespace json {
 	}
 
 	inline void from_json(const json& j, Daily& x) {
-		x.time = get_stack_optional<std::vector<double>>(j, "time");
+		x.time = get_stack_optional<std::vector<std::string>>(j, "time");
 		x.weathercode = get_stack_optional<std::vector<double>>(j, "weathercode");
 		x.temperature_2m_max = get_stack_optional<std::vector<double>>(j, "temperature_2m_max");
 		x.temperature_2m_min = get_stack_optional<std::vector<double>>(j, "temperature_2m_min");

@@ -10,6 +10,7 @@
 #include <limits>
 #include "json.h"
 
+
 namespace api
 {
 	class Hourly;

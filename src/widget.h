@@ -32,11 +32,12 @@ class Widget
 public:
 	Widget(int, RECT);
 
-	int                    id;      // The index of the widget on the dashboard (vector.size()).
-	RECT                   rect;    // The widget size and location.
-	vector<string>         fields;  // Fields of data.
-	vector<vector<Data*>>  data;    // All data is stored as a string and may be converted to a number later.
-	vector<string*>        units;   // The unit of the data of the field.
+	int                    id;      // The index of the widget on the dashboard (vector.size())
+	RECT                   rect;    // The widget size and location
+	vector<string>         fields;  // Fields of data
+	vector<vector<Data*>>  data;    // Data pointers
+	vector<string>         time;    // Time of data
+	vector<string*>        units;   // The unit of the data of the field
 };
 
 struct Data

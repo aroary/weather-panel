@@ -4,6 +4,24 @@ Widget::Widget(int id, RECT rect) : rect{ rect.left, rect.top, rect.right, rect.
 	this->id = id;
 }
 
+Widget::~Widget()
+{
+	for (vector<Data*> datas : this->data)
+	{
+		for (Data* data : datas)
+			delete data;
+
+		datas.clear();
+	}
+
+	this->data.clear();
+
+	for (string* unit : this->units)
+		delete unit;
+
+	this->units.clear();
+}
+
 bool Dashboard::replace(int id, RECT rect)
 {
 	// Validate new widget size.

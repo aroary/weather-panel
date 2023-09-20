@@ -33,6 +33,7 @@ class Widget
 {
 public:
 	Widget(int, RECT);
+	~Widget();
 
 	int                    id;      // The index of the widget on the dashboard (vector.size())
 	RECT                   rect;    // The widget size and location

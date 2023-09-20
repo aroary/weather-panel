@@ -15,6 +15,7 @@
 #define IDD_SETTINGS                    129
 #define IDC_LATITUDE                    1008
 #define IDC_LOGITUDE                    1009
+#define IDC_LONGITUDE                   1009
 #define IDC_ELEVATION                   1010
 #define IDC_TIMEZONE                    1011
 #define IDC_SCELL_LAND                  1017

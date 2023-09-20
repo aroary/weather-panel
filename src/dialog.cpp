@@ -24,31 +24,11 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 // Message handler for settings box.
 INT_PTR CALLBACK Settings(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	static HWND boxControl = GetDlgItem(hDlg, IDC_BOX);
-	static HWND latidudeControl = GetDlgItem(hDlg, IDC_LATITUDE);
-	static HWND longitudeControl = GetDlgItem(hDlg, IDC_LOGITUDE);
-	static HWND elevationControl = GetDlgItem(hDlg, IDC_ELEVATION);
-	static HWND timezoneControl = GetDlgItem(hDlg, IDC_TIMEZONE);
-	static HWND windspeedKMHControl = GetDlgItem(hDlg, IDC_UWINDSPEED_KMH);
-	static HWND windspeedMSControl = GetDlgItem(hDlg, IDC_UWINDSPEED_MS);
-	static HWND windspeedMHControl = GetDlgItem(hDlg, IDC_UWINDSPEED_MH);
-	static HWND windspeedKNControl = GetDlgItem(hDlg, IDC_UWINDSPEED_KN);
-	static HWND temperatureFControl = GetDlgItem(hDlg, IDC_UTEMPERATURE_F);
-	static HWND temperatureCControl = GetDlgItem(hDlg, IDC_UTEMPERATURE_C);
-	static HWND precipitationMMControl = GetDlgItem(hDlg, IDC_UPRECIPITATION_MM);
-	static HWND precipitationINCHControl = GetDlgItem(hDlg, IDC_UPRECIPITATION_INCH);
-	static HWND cellselectionLANDControl = GetDlgItem(hDlg, IDC_SCELL_LAND);
-	static HWND cellselectionSEAControl = GetDlgItem(hDlg, IDC_SCELL_SEA);
-
-	//IsDlgButtonChecked(hDlg, buttonID) == BST_CHECKED
-	
-
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
 	{
 	case WM_INITDIALOG:
 	{
-
 		std::fstream configFile("weather.conf", std::ios::out | std::ios::in | std::ios::app);
 
 		if (configFile.is_open())
@@ -67,25 +47,23 @@ INT_PTR CALLBACK Settings(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 					std::wstring wvalue(value.begin(), value.end());
 
 					if (command == "box")
-					{}
+						SetDlgItemInt(hDlg, IDC_BOX, 20, false);
 					else if (command == "timezone")
-						SetWindowText(timezoneControl, wvalue.c_str());
+						SetDlgItemText(hDlg, IDC_TIMEZONE, wvalue.c_str());
 					else if (command == "latitude")
-						SetWindowText(latidudeControl, wvalue.c_str());
+						SetDlgItemText(hDlg, IDC_LATITUDE, wvalue.c_str());
 					else if (command == "longitude")
-						SetWindowText(longitudeControl, wvalue.c_str());
+						SetDlgItemText(hDlg, IDC_LONGITUDE, wvalue.c_str());
 					else if (command == "elevation")
-						SetWindowText(elevationControl, wvalue.c_str());
+						SetDlgItemText(hDlg, IDC_ELEVATION, wvalue.c_str());
 					else if (command == "temperatureunit")
-					{}
+						CheckRadioButton(hDlg, IDC_UTEMPERATURE_F, IDC_UTEMPERATURE_C, IDC_UTEMPERATURE_F);
 					else if (command == "windspeedunit")
-					{}
+						CheckRadioButton(hDlg, IDC_UWINDSPEED_KMH, IDC_UWINDSPEED_KN, IDC_UWINDSPEED_MH);
 					else if (command == "precipitationunit")
-					{}
-					else if (command == "timeformat")
-					{}
+						CheckRadioButton(hDlg, IDC_UPRECIPITATION_MM, IDC_UPRECIPITATION_INCH, IDC_UPRECIPITATION_INCH);
 					else if (command == "cellselection")
-					{}
+						CheckRadioButton(hDlg, IDC_SCELL_LAND, IDC_SCELL_SEA, IDC_SCELL_LAND);
 					else;
 				}
 			else
@@ -114,6 +92,8 @@ INT_PTR CALLBACK Settings(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		else if (LOWORD(wParam) == IDOK)
 		{
+			//IsDlgButtonChecked(hDlg, buttonID) == BST_CHECKED
+
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
 		}

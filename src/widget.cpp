@@ -36,6 +36,9 @@ bool Dashboard::replace(int id, RECT rect)
 	// Relocate to new position.
 	this->widgets.at(id)->rect = { rect.left, rect.top, rect.right, rect.bottom };
 
+	// Save the changes
+	this->save();
+
 	return true;
 }
 

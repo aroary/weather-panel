@@ -13,6 +13,8 @@
 #define IDC_WEATHERPANEL                109
 #define IDR_MAINFRAME                   128
 #define IDD_SETTINGS                    129
+#define IDR_MENU                        130
+#define IDD_EDIT                        131
 #define IDC_LATITUDE                    1008
 #define IDC_LOGITUDE                    1009
 #define IDC_LONGITUDE                   1009
@@ -34,6 +36,21 @@
 #define IDC_MFCBUTTON1                  1029
 #define IDC_BUTTON1                     1030
 #define IDC_RESET                       1030
+#define IDC_LEFT                        1033
+#define IDC_RIGHT                       1034
+#define IDC_SUBTRACT_L                  1035
+#define IDC_ADD_L                       1036
+#define IDC_SUBTRACT_R                  1037
+#define IDC_ADD_R                       1038
+#define IDC_TOP                         1039
+#define IDC_SUBTRACT_T                  1040
+#define IDC_ADD_T                       1041
+#define IDC_BOTTOM                      1042
+#define IDC_SUBTRACT_B                  1043
+#define IDC_ADD_B                       1044
+#define IDC_FIELDS                      1047
+#define IDC_EDIT2                       1052
+#define IDC_TITLE                       1052
 #define ID_VIEW                         32771
 #define ID_HELP_CONTRIBUTE              32772
 #define ID_HELP_LICENCE                 32773
@@ -44,6 +61,13 @@
 #define ID_EDIT_CLEAR                   32778
 #define ID_EDIT_EDIT                    32779
 #define ID_EDIT_SETTINGS                32780
+#define ID_EDIT                         32781
+#define ID_EDIT_MOVE                    32782
+#define ID_MOVE                         32783
+#define ID_EDIT_EDIT32784               32784
+#define ID_MENU                         32785
+#define ID_MENU_SETTINGS                32786
+#define ID_MENU_DELETE                  32787
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -51,9 +75,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        130
-#define _APS_NEXT_COMMAND_VALUE         32781
-#define _APS_NEXT_CONTROL_VALUE         1031
+#define _APS_NEXT_RESOURCE_VALUE        132
+#define _APS_NEXT_COMMAND_VALUE         32788
+#define _APS_NEXT_CONTROL_VALUE         1053
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

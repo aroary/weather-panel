@@ -35,8 +35,8 @@ public:
 	Widget(int, RECT);
 	~Widget();
 
-	int                    id;      // The index of the widget on the dashboard (vector.size())
-	RECT                   rect;    // The widget size and location
+	int                    id;      // Index of the widget on the dashboard (vector.size())
+	RECT                   rect;    // Widget size and location
 	vector<string>         fields;  // Fields of data
 	vector<vector<Data*>>  data;    // Data pointers
 	vector<string>         time;    // Time of data

@@ -128,7 +128,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case ID_EDIT_RELOAD:
+			// Clear old setup
+			for (Widget* widget : dashboard.widgets)
+				delete widget;
+
+			dashboard.widgets.clear();
+
+			// Request reload
 			SendMessage(hWnd, WM_CREATE, NULL, NULL);
+
 			MessageBox(NULL, L"Dashboard reloaded.", L"Load", MB_ICONINFORMATION | MB_OK);
 			break;
 
@@ -151,6 +159,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		GetCursorPos(&cursor);
 		ScreenToClient(hWnd, &cursor);
 		InvalidateRect(hWnd, &client, false);
+	}
+	break;
+
+	case WM_RBUTTONUP:
+	{
+		POINT screen = cursor;
+		ClientToScreen(hWnd, &screen);
+
+		Widget* selection = nullptr;
+
+		for (Widget* widget : dashboard.widgets)
+			if (widget->rect.left * box <= cursor.x && widget->rect.top * box <= cursor.y && widget->rect.right * box >= cursor.x && widget->rect.bottom * box >= cursor.y)
+			{
+				selection = widget;
+				break;
+			}
+
+		if (selection != nullptr)
+		{
+			HMENU hMenu = LoadMenu(NULL, MAKEINTRESOURCE(IDR_MENU));
+			UINT item = TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_TOPALIGN | TPM_LEFTALIGN | TPM_RETURNCMD, screen.x, screen.y, 0, hWnd, NULL);
+
+			switch (item)
+			{
+			case ID_EDIT:
+				DialogBox(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, About);
+				break;
+
+			default:
+				break;
+			}
+		}
 	}
 	break;
 

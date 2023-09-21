@@ -136,8 +136,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			// Request reload
 			SendMessage(hWnd, WM_CREATE, NULL, NULL);
-
-			MessageBox(NULL, L"Dashboard reloaded.", L"Load", MB_ICONINFORMATION | MB_OK);
 			break;
 
 		case ID_EDIT_SAVE:
@@ -190,7 +188,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case ID_DELETE:
+			dashboard.widgets.erase(dashboard.widgets.begin() + selection->id);
+			
 			delete selection;
+
 			dashboard.save();
 			break;
 

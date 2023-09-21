@@ -21,7 +21,10 @@ struct Data; // Container for json value
 class Dashboard
 {
 public:
-	vector<Widget*> widgets;
+	vector<Widget*>  widgets;   // Displayed widgets
+	vector<string>   hourtime;  // Time of hour data
+	vector<string>   daytime;   // Time of day data
+
 	bool replace(int, RECT);
 	bool save();
 	void update();
@@ -37,10 +40,10 @@ public:
 
 	int                    id;      // Index of the widget on the dashboard (vector.size())
 	RECT                   rect;    // Widget size and location
+	string                 title;   // Header of widget
 	vector<string>         fields;  // Fields of data
 	vector<vector<Data*>>  data;    // Data pointers
-	vector<string>         time;    // Time of data
-	vector<string*>        units;   // The unit of the data of the field
+	vector<string>         units;   // The unit of the data of the fields
 };
 
 struct Data

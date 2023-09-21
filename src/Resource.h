@@ -15,6 +15,8 @@
 #define IDD_SETTINGS                    129
 #define IDR_MENU                        130
 #define IDD_EDIT                        131
+#define IDD_DIALOG1                     132
+#define IDD_NEW                         132
 #define IDC_LATITUDE                    1008
 #define IDC_LOGITUDE                    1009
 #define IDC_LONGITUDE                   1009
@@ -68,6 +70,9 @@
 #define ID_MENU                         32785
 #define ID_MENU_SETTINGS                32786
 #define ID_MENU_DELETE                  32787
+#define ID_MENU_NEW                     32788
+#define ID_DELETE                       32789
+#define ID_NEW                          32790
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -75,8 +80,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        132
-#define _APS_NEXT_COMMAND_VALUE         32788
+#define _APS_NEXT_RESOURCE_VALUE        133
+#define _APS_NEXT_COMMAND_VALUE         32791
 #define _APS_NEXT_CONTROL_VALUE         1053
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

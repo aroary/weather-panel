@@ -176,20 +176,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				break;
 			}
 
-		if (selection != nullptr)
+		HMENU hMenu = LoadMenu(NULL, MAKEINTRESOURCE(IDR_MENU));
+		UINT item = TrackPopupMenu(GetSubMenu(hMenu, selection == nullptr), TPM_TOPALIGN | TPM_LEFTALIGN | TPM_RETURNCMD, screen.x, screen.y, 0, hWnd, NULL);
+
+		switch (item)
 		{
-			HMENU hMenu = LoadMenu(NULL, MAKEINTRESOURCE(IDR_MENU));
-			UINT item = TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_TOPALIGN | TPM_LEFTALIGN | TPM_RETURNCMD, screen.x, screen.y, 0, hWnd, NULL);
+		case ID_NEW:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_NEW), hWnd, About);
+			break;
 
-			switch (item)
-			{
-			case ID_EDIT:
-				DialogBox(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, About);
-				break;
+		case ID_EDIT:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, About);
+			break;
 
-			default:
-				break;
-			}
+		case ID_DELETE:
+			delete selection;
+			dashboard.save();
+			break;
+
+		default:
+			break;
 		}
 	}
 	break;
@@ -277,54 +283,58 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetTextAlign(mdc, TA_CENTER);
 
 			// Draw text values
-			for (int i = 0; i < widget->fields.size(); i++)
-			{
-				wstring title = wstring(widget->fields[i].begin(), widget->fields[i].end());
-				wstring value;
+			if (dashboard.weather.success)
+				for (int i = 0; i < widget->fields.size(); i++)
+				{
+					wstring title = wstring(widget->fields[i].begin(), widget->fields[i].end());
+					wstring value;
 
-				// Find value and assign it to `value`.
-				if (widget->data[i][0]->s != nullptr)
-				{
-					string data = *widget->data[i][0]->s;
-					value = wstring(data.begin(), data.end());
-				}
-				else if (widget->data[i][0]->d != nullptr)
-				{
-					value = std::to_wstring(*widget->data[i][0]->d);
-					value.erase(value.find_last_not_of('0') + 1, string::npos);
-					value.erase(value.find_last_not_of('.') + 1, string::npos);
-				}
-				else if (widget->data[i][0]->i != nullptr)
-					value = std::to_wstring(*widget->data[i][0]->i);
-				else if (widget->data[i][0]->v != nullptr)
-				{
-					vector<double> data(*widget->data[i][0]->v);
-					for (UINT i = 0; i < height - 1 && i < data.size(); i++)
+					// Find value and assign it to `value`.
+					if (widget->data[i][0]->s != nullptr)
 					{
-						wstring value = std::to_wstring(data[i]);
+						string data = *widget->data[i][0]->s;
+						value = wstring(data.begin(), data.end());
+					}
+					else if (widget->data[i][0]->d != nullptr)
+					{
+						value = std::to_wstring(*widget->data[i][0]->d);
 						value.erase(value.find_last_not_of('0') + 1, string::npos);
 						value.erase(value.find_last_not_of('.') + 1, string::npos);
-
-						TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + box * i + box, value.c_str(), lstrlen(value.c_str()));
 					}
+					else if (widget->data[i][0]->i != nullptr)
+						value = std::to_wstring(*widget->data[i][0]->i);
+					else if (widget->data[i][0]->v != nullptr)
+					{
+						vector<double> data(*widget->data[i][0]->v);
+						for (UINT j = 0; j < height - 1 && j < data.size(); j++)
+						{
+							wstring value = std::to_wstring(data[j]);
+							value.erase(value.find_last_not_of('0') + 1, string::npos);
+							value.erase(value.find_last_not_of('.') + 1, string::npos);
+							// value += wstring(widget->units[i].begin(), widget->units[i].end());
+
+							TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + box * j + box, value.c_str(), lstrlen(value.c_str()));
+						}
+					}
+
+					// value += wstring(widget->units[i].begin(), widget->units[i].end());
+
+					HPEN heading = CreatePen(PS_DASH, 1, BLACK_PEN);
+
+					SelectObject(mdc, heading);
+
+					// Draw title
+					TextOut(mdc, scaledRect.left + pwidth / 2, scaledRect.top, title.c_str(), lstrlen(title.c_str()));
+
+					// Underline
+					MoveToEx(mdc, scaledRect.left, (scaledRect.top) + box, NULL);
+					LineTo(mdc, scaledRect.right, (scaledRect.top) + box);
+
+					// Draw data
+					TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + (pheight + box / 2) / 2, value.c_str(), lstrlen(value.c_str()));
+
+					DeleteObject(heading);
 				}
-
-				HPEN heading = CreatePen(PS_DASH, 1, BLACK_PEN);
-
-				SelectObject(mdc, heading);
-
-				// Draw title
-				TextOut(mdc, scaledRect.left + pwidth / 2, scaledRect.top, title.c_str(), lstrlen(title.c_str()));
-
-				// Underline
-				MoveToEx(mdc, scaledRect.left, (scaledRect.top) + box, NULL);
-				LineTo(mdc, scaledRect.right, (scaledRect.top) + box);
-
-				// Draw data
-				TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + (pheight + box / 2) / 2, value.c_str(), lstrlen(value.c_str()));
-
-				DeleteObject(heading);
-			}
 		}
 
 		// Draggage
@@ -430,8 +440,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						iss >> dashboard.weather.windspeed_unit;
 					else if (command == "precipitationunit")
 						iss >> dashboard.weather.precipitation_unit;
-					else if (command == "timeformat")
-						iss >> dashboard.weather.timeformat;
 					else if (command == "cellselection")
 						iss >> dashboard.weather.cell_selection;
 					else;

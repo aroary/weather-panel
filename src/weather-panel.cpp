@@ -184,12 +184,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case ID_EDIT:
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, About);
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit);
 			break;
 
 		case ID_DELETE:
 			dashboard.widgets.erase(dashboard.widgets.begin() + selection->id);
-			
+
 			delete selection;
 
 			dashboard.save();

@@ -184,7 +184,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case ID_EDIT:
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit);
+			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)selection);
 			break;
 
 		case ID_DELETE:

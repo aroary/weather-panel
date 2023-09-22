@@ -1,7 +1,8 @@
 #include "dialog.h"
 
-// Forward declaration
+// Forward declarations
 void TreeBranch(HWND, LPWSTR, HTREEITEM);
+void ShiftPosition(HWND, int, int);
 
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -115,6 +116,7 @@ INT_PTR CALLBACK Settings(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 INT_PTR CALLBACK Edit(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static HWND hwndTV;
+	static Widget* widget;
 
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
@@ -122,12 +124,13 @@ INT_PTR CALLBACK Edit(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_INITDIALOG:
 	{
 		hwndTV = GetDlgItem(hDlg, IDC_FIELDS);
+		widget = (Widget*)lParam;
 
-		SetDlgItemText(hDlg, IDC_TITLE, L"Edit");
-		SetDlgItemText(hDlg, IDC_LEFT, L"10");
-		SetDlgItemText(hDlg, IDC_RIGHT, L"12");
-		SetDlgItemText(hDlg, IDC_TOP, L"14");
-		SetDlgItemText(hDlg, IDC_BOTTOM, L"16");
+		SetDlgItemText(hDlg, IDC_TITLE, std::wstring(widget->title.begin(), widget->title.end()).c_str());
+		SetDlgItemText(hDlg, IDC_LEFT, std::to_wstring(widget->rect.left + 1).c_str());
+		SetDlgItemText(hDlg, IDC_RIGHT, std::to_wstring(widget->rect.right + 1).c_str());
+		SetDlgItemText(hDlg, IDC_TOP, std::to_wstring(widget->rect.top + 1).c_str());
+		SetDlgItemText(hDlg, IDC_BOTTOM, std::to_wstring(widget->rect.bottom + 1).c_str());
 
 		HTREEITEM hNext;
 
@@ -164,10 +167,71 @@ INT_PTR CALLBACK Edit(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 
 	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+		switch (LOWORD(wParam))
 		{
+		case IDCANCEL:
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
+
+		case IDOK:
+			EndDialog(hDlg, LOWORD(wParam));
+			return (INT_PTR)TRUE;
+
+		case IDC_ADD_L:
+		{
+			ShiftPosition(hDlg, IDC_LEFT, 1);
+			break;
+		}
+
+		case IDC_SUBTRACT_L:
+		{
+			ShiftPosition(hDlg, IDC_LEFT, -1);
+			break;
+		}
+
+		case IDC_ADD_R:
+		{
+			ShiftPosition(hDlg, IDC_RIGHT, 1);
+			break;
+		}
+
+		case IDC_SUBTRACT_R:
+		{
+			ShiftPosition(hDlg, IDC_RIGHT, -1);
+			break;
+		}
+
+		case IDC_ADD_T:
+		{
+			ShiftPosition(hDlg, IDC_TOP, 1);
+			break;
+		}
+
+		case IDC_SUBTRACT_T:
+		{
+			ShiftPosition(hDlg, IDC_TOP, -1);
+			break;
+		}
+
+		case IDC_ADD_B:
+		{
+			ShiftPosition(hDlg, IDC_BOTTOM, 1);
+			break;
+		}
+
+		case IDC_SUBTRACT_B:
+		{
+			ShiftPosition(hDlg, IDC_BOTTOM, -1);
+			break;
+		}
+
+		case IDC_RESET:
+			TreeView_DeleteAllItems(hwndTV);
+			SendMessage(hDlg, WM_INITDIALOG, NULL, (LPARAM)widget);
+			return (INT_PTR)TRUE;
+
+		default:
+			break;
 		}
 		break;
 	}
@@ -187,4 +251,15 @@ void TreeBranch(HWND hwndTV, LPWSTR pszText, HTREEITEM hParent)
 	tvins.hParent = hParent;
 
 	TreeView_InsertItem(hwndTV, &tvins);
+}
+
+void ShiftPosition(HWND hDlg, int idc, int shift)
+{
+	LPWSTR value = new WCHAR[16];
+	GetDlgItemText(hDlg, idc, value, sizeof(value));
+	int evalue = _wtoi(value) + shift;
+	memset(value, 0, sizeof(value));
+	_itow_s(evalue, value, sizeof(value), 9);
+	SetDlgItemText(hDlg, idc, value);
+	delete[] value;
 }

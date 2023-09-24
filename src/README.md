@@ -9,7 +9,7 @@
 |**`temperatureunit`**|`temperatureunit <fahrenheit\|celsius>`|Set *Temperature Unit*|
 |**`windspeedunit`**|`windspeedunit <kmh\|ms\|mph\|kn>`|Set *Wind Speed Unit*|
 |**`precipitationunit`**|`precipitationunit <mm\|inch>`|Set *Precipitation Unit*|
-|**`timezone`**|`timezone <GMT\|auto >`|Set *[timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)*|
+|**`timezone`**|`timezone <GMT\|auto >`|Set *[Timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)*|
 |**`cellselection`**|`cellselection <nearest\|land\|sea>`|Set *Cell Selection*|
 |**`widget`**|`widget <left> <top> <right> <bottom> "[title]" [...data]`|Set *Widget*|
 ### Data Access

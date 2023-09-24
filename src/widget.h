@@ -1,9 +1,8 @@
 #pragma once
 
 #include <Windows.h>
-#include <fstream>
+#include <string>
 #include <vector>
-#include <iomanip>
 #include "weather-api.h"
 
 #define WD_NORESIZE     0x00000000L  // No resize action.

@@ -1,11 +1,12 @@
-#include <fstream>
-#include <sstream>
-#include <vector>
 #include "framework.h"
 #include "weather-panel.h"
 #include "dialog.h"
 #include "weather-api.h"
 #include "widget.h"
+#include "settings.h"
+#include <fstream>
+#include <sstream>
+#include <vector>
 
 #define MAX_LOADSTRING 100
 
@@ -183,14 +184,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			RECT rect{ 0, 0, 2, 2 };
 
-			selection = new Widget(dashboard.widgets.size(), rect);
+			selection = new Widget((int)dashboard.widgets.size(), rect);
 
 		EDIT:
-			UINT result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)selection);
-			
+			INT_PTR result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)selection);
+
 			if (result == IDCANCEL)
 				delete selection;
-			else 
+			else
 			{
 				if (dashboard.replace(selection, selection->rect))
 					dashboard.widgets.push_back(selection);
@@ -202,8 +203,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 
 		case ID_EDIT:
-			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)selection);
+		{
+			if (selection != nullptr) // To surpress C6011
+			{
+				Widget widget = *selection;
+				INT_PTR result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)selection);
+
+				if (result == IDCANCEL)
+					selection = &widget;
+				else
+				{
+					if (!dashboard.replace(selection, selection->rect))
+						selection = &widget;
+				}
+			}
 			break;
+		}
 
 		case ID_DELETE:
 		{
@@ -326,7 +341,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					{
 						string data = *widget->data[i][0]->s;
 						wstring value = wstring(data.begin(), data.end()) + wstring(widget->units[i].begin(), widget->units[i].end());
-						
+
 						TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + (pheight + box / 2) / 2, value.c_str(), lstrlen(value.c_str()));
 					}
 					else if (widget->data[i][0]->d != nullptr)
@@ -349,7 +364,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						vector<double> data(*widget->data[i][0]->v);
 						for (UINT j = 0; j < height - 1 && j < data.size(); j++)
 						{
-							wstring value = std::to_wstring(data[j]);
+							wstring value = wstring(dashboard.hourtime[j].begin(), dashboard.hourtime[j].end()) + L" " + std::to_wstring(data[j]);
 							value.erase(value.find_last_not_of('0') + 1, string::npos);
 							value.erase(value.find_last_not_of('.') + 1, string::npos);
 							value += wstring(widget->units[i].begin(), widget->units[i].end());
@@ -424,83 +439,62 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		GetCursorPos(&cursor);
 		ScreenToClient(hWnd, &cursor);
 
-		std::fstream configFile("weather.conf", std::ios::out | std::ios::in | std::ios::app);
-
-		// Init config
-		if (configFile.is_open())
-		{
-			string line; // Current line.
-			if (std::getline(configFile, line) && line == "0")
-				while (std::getline(configFile, line))
-				{
-					std::istringstream iss(line);
-					string command;
-					iss >> command;
-					if (command == "widget")
-					{
-						// Find the widget position
-						RECT position{};
-						iss >> position.left >> position.top >> position.right >> position.bottom;
-
-						// Create widget
-						Widget* widget = new Widget((int)dashboard.widgets.size(), position);
-
-						// Set widget title
-						string title;
-						while (iss >> title)
-						{
-							if (title.back() == '"')
-							{
-								widget->title += title;
-								break;
-							}
-							else
-								widget->title += title + " ";
-						}
-
-						widget->title.erase(0, widget->title.find_first_not_of('"'));
-						widget->title.erase(widget->title.find_last_not_of('"') + 1, string::npos);
-
-						// Set widget fields
-						string field;
-						while (iss >> field)
-							widget->fields.push_back(field);
-
-						dashboard.widgets.push_back(widget);
-					}
-					else if (command == "box")
-						iss >> box;
-					else if (command == "timezone")
-						iss >> dashboard.weather.timezone;
-					else if (command == "latitude")
-						iss >> dashboard.weather.latitude;
-					else if (command == "longitude")
-						iss >> dashboard.weather.longitude;
-					else if (command == "elevation")
-						iss >> dashboard.weather.elevation;
-					else if (command == "temperatureunit")
-						iss >> dashboard.weather.temperature_unit;
-					else if (command == "windspeedunit")
-						iss >> dashboard.weather.windspeed_unit;
-					else if (command == "precipitationunit")
-						iss >> dashboard.weather.precipitation_unit;
-					else if (command == "cellselection")
-						iss >> dashboard.weather.cell_selection;
-					else;
-				}
-			else
+		configure("weather.conf", [](string line) {
+			std::istringstream iss(line);
+			string command;
+			iss >> command;
+			if (command == "widget")
 			{
-				MessageBox(NULL, L"Problem reading configurations.\nPress OK to generate default configuration.", L"Configuration Error", MB_ICONEXCLAMATION | MB_OK);
+				// Find the widget position
+				RECT position{};
+				iss >> position.left >> position.top >> position.right >> position.bottom;
 
-				configFile.close();
-				configFile.open("weather.conf", std::ofstream::out | std::ofstream::trunc);
-				configFile.write("0\n", sizeof("0\n"));
+				// Create widget
+				Widget* widget = new Widget((int)dashboard.widgets.size(), position);
+
+				// Set widget title
+				string title;
+				while (iss >> title)
+				{
+					if (title.back() == '"')
+					{
+						widget->title += title;
+						break;
+					}
+					else
+						widget->title += title + " ";
+				}
+
+				widget->title.erase(0, widget->title.find_first_not_of('"'));
+				widget->title.erase(widget->title.find_last_not_of('"') + 1, string::npos);
+
+				// Set widget fields
+				string field;
+				while (iss >> field)
+					widget->fields.push_back(field);
+
+				dashboard.widgets.push_back(widget);
 			}
-
-			configFile.close();
-		}
-		else
-			MessageBox(NULL, L"Faild to read configuration file.", L"Configuration Error", MB_ICONERROR | MB_OK);
+			else if (command == "box")
+				iss >> box;
+			else if (command == "timezone")
+				iss >> dashboard.weather.timezone;
+			else if (command == "latitude")
+				iss >> dashboard.weather.latitude;
+			else if (command == "longitude")
+				iss >> dashboard.weather.longitude;
+			else if (command == "elevation")
+				iss >> dashboard.weather.elevation;
+			else if (command == "temperatureunit")
+				iss >> dashboard.weather.temperature_unit;
+			else if (command == "windspeedunit")
+				iss >> dashboard.weather.windspeed_unit;
+			else if (command == "precipitationunit")
+				iss >> dashboard.weather.precipitation_unit;
+			else if (command == "cellselection")
+				iss >> dashboard.weather.cell_selection;
+			else;
+		});
 
 		// Initialize dashboard data.
 		dashboard.weather.current_weather = true;

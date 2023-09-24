@@ -1,4 +1,6 @@
 #include "widget.h"
+#include <iomanip>
+#include <fstream>
 
 Widget::Widget(int id, RECT rect) : rect{ rect.left, rect.top, rect.right, rect.bottom } {
 	this->id = id;
@@ -112,10 +114,18 @@ void Dashboard::update()
 		this->weather.success = true;
 		
 		if (weather.count("hourly"))
+		{
 			this->hourtime = weather["hourly"]["time"].get<vector<string>>();
+			for (int i = 0; i < this->hourtime.size(); i++)
+				this->hourtime[i] = this->hourtime[i].erase(0, 11);
+		}
 		
 		if (weather.count("daily"))
+		{
 			this->daytime = weather["daily"]["time"].get<vector<string>>();
+			for (int i = 0; i < this->daytime.size(); i++)
+				this->daytime[i] = this->daytime[i].erase(11, string::npos);
+		}
 
 		for (Widget* widget : this->widgets)
 		{

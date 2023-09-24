@@ -1,15 +1,8 @@
 #pragma once
 
-#include <sstream>
 #include <string>
 #include <vector>
 #include <set>
-#include <cstdio>
-#include <memory>
-#include <stdexcept>
-#include <array>
-#include <iomanip>
-#include <limits>
 
 #pragma warning(push, 0)
 #include "nlohmann/json.hpp"

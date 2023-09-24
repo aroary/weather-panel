@@ -1,4 +1,12 @@
 #include "weather-api.h"
+#include <sstream>
+#include <set>
+#include <cstdio>
+#include <memory>
+#include <stdexcept>
+#include <array>
+#include <iomanip>
+#include <limits>
 
 namespace api {
 	string Weather::url(string provider, string apikey)

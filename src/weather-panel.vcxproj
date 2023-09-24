@@ -140,6 +140,7 @@
     <ClInclude Include="dialog.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="settings.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="weather-api.h" />
     <ClInclude Include="weather-panel.h" />
@@ -147,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dialog.cpp" />
+    <ClCompile Include="settings.cpp" />
     <ClCompile Include="weather-api.cpp" />
     <ClCompile Include="weather-panel.cpp" />
     <ClCompile Include="widget.cpp" />

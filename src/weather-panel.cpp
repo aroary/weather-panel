@@ -309,37 +309,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				for (int i = 0; i < widget->fields.size(); i++)
 				{
 					wstring title = wstring(widget->title.begin(), widget->title.end());
-					wstring value;
-
-					// Find value and assign it to `value`.
-					if (widget->data[i][0]->s != nullptr)
-					{
-						string data = *widget->data[i][0]->s;
-						value = wstring(data.begin(), data.end());
-					}
-					else if (widget->data[i][0]->d != nullptr)
-					{
-						value = std::to_wstring(*widget->data[i][0]->d);
-						value.erase(value.find_last_not_of('0') + 1, string::npos);
-						value.erase(value.find_last_not_of('.') + 1, string::npos);
-					}
-					else if (widget->data[i][0]->i != nullptr)
-						value = std::to_wstring(*widget->data[i][0]->i);
-					else if (widget->data[i][0]->v != nullptr)
-					{
-						vector<double> data(*widget->data[i][0]->v);
-						for (UINT j = 0; j < height - 1 && j < data.size(); j++)
-						{
-							wstring value = std::to_wstring(data[j]);
-							value.erase(value.find_last_not_of('0') + 1, string::npos);
-							value.erase(value.find_last_not_of('.') + 1, string::npos);
-							// value += wstring(widget->units[i].begin(), widget->units[i].end());
-
-							TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + box * j + box, value.c_str(), lstrlen(value.c_str()));
-						}
-					}
-
-					// value += wstring(widget->units[i].begin(), widget->units[i].end());
 
 					HPEN heading = CreatePen(PS_DASH, 1, BLACK_PEN);
 
@@ -352,8 +321,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					MoveToEx(mdc, scaledRect.left, (scaledRect.top) + box, NULL);
 					LineTo(mdc, scaledRect.right, (scaledRect.top) + box);
 
-					// Draw data
-					TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + (pheight + box / 2) / 2, value.c_str(), lstrlen(value.c_str()));
+					// Find value and assign it to `value`.
+					if (widget->data[i][0]->s != nullptr)
+					{
+						string data = *widget->data[i][0]->s;
+						wstring value = wstring(data.begin(), data.end()) + wstring(widget->units[i].begin(), widget->units[i].end());
+						
+						TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + (pheight + box / 2) / 2, value.c_str(), lstrlen(value.c_str()));
+					}
+					else if (widget->data[i][0]->d != nullptr)
+					{
+						wstring value = std::to_wstring(*widget->data[i][0]->d);
+						value.erase(value.find_last_not_of('0') + 1, string::npos);
+						value.erase(value.find_last_not_of('.') + 1, string::npos);
+						value += wstring(widget->units[i].begin(), widget->units[i].end());
+
+						TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + (pheight + box / 2) / 2, value.c_str(), lstrlen(value.c_str()));
+					}
+					else if (widget->data[i][0]->i != nullptr)
+					{
+						wstring value = std::to_wstring(*widget->data[i][0]->i);
+
+						TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + (pheight + box / 2) / 2, std::to_wstring(*widget->data[i][0]->i).c_str(), lstrlen(value.c_str()));
+					}
+					else if (widget->data[i][0]->v != nullptr)
+					{
+						vector<double> data(*widget->data[i][0]->v);
+						for (UINT j = 0; j < height - 1 && j < data.size(); j++)
+						{
+							wstring value = std::to_wstring(data[j]);
+							value.erase(value.find_last_not_of('0') + 1, string::npos);
+							value.erase(value.find_last_not_of('.') + 1, string::npos);
+							value += wstring(widget->units[i].begin(), widget->units[i].end());
+
+							TextOut(mdc, widget->rect.left * box + pwidth / 2, widget->rect.top * box + box * j + box, value.c_str(), lstrlen(value.c_str()));
+						}
+					}
 
 					DeleteObject(heading);
 				}

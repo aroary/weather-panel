@@ -1,5 +1,5 @@
 # Documentation
-### Setting file
+### Setting File
 |Name|Usage|Description|
 |:--|:--|:--|
 |**`0`**|`0`|First line must be *`0`*|

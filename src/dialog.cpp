@@ -188,37 +188,37 @@ INT_PTR CALLBACK Edit(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case IDC_ADD_R:
 		{
-			widget->rect.left = ShiftPosition(hDlg, IDC_RIGHT, 1);
+			widget->rect.right = ShiftPosition(hDlg, IDC_RIGHT, 1);
 			break;
 		}
 
 		case IDC_SUBTRACT_R:
 		{
-			widget->rect.left = ShiftPosition(hDlg, IDC_RIGHT, -1);
+			widget->rect.right = ShiftPosition(hDlg, IDC_RIGHT, -1);
 			break;
 		}
 
 		case IDC_ADD_T:
 		{
-			widget->rect.left = ShiftPosition(hDlg, IDC_TOP, 1);
+			widget->rect.top = ShiftPosition(hDlg, IDC_TOP, 1);
 			break;
 		}
 
 		case IDC_SUBTRACT_T:
 		{
-			widget->rect.left = ShiftPosition(hDlg, IDC_TOP, -1);
+			widget->rect.top = ShiftPosition(hDlg, IDC_TOP, -1);
 			break;
 		}
 
 		case IDC_ADD_B:
 		{
-			widget->rect.left = ShiftPosition(hDlg, IDC_BOTTOM, 1);
+			widget->rect.bottom = ShiftPosition(hDlg, IDC_BOTTOM, 1);
 			break;
 		}
 
 		case IDC_SUBTRACT_B:
 		{
-			widget->rect.left = ShiftPosition(hDlg, IDC_BOTTOM, -1);
+			widget->rect.bottom = ShiftPosition(hDlg, IDC_BOTTOM, -1);
 			break;
 		}
 

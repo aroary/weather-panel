@@ -2,7 +2,7 @@
 
 // Forward declarations
 void TreeBranch(HWND, LPWSTR, HTREEITEM);
-void ShiftPosition(HWND, int, int);
+USHORT ShiftPosition(HWND, int, int);
 
 // Message handler for about box.
 INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -154,6 +154,7 @@ INT_PTR CALLBACK Edit(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		TreeBranch(hwndTV, const_cast<LPWSTR>(L"daily"), TVI_ROOT);
 
 		hNext = TreeView_GetNextItem(hwndTV, hti, TVGN_NEXT);
+		TreeView_SetCheckState(hwndTV, hNext, BST_CHECKED);
 		while (hNext)
 		{
 			hti = hNext;
@@ -178,50 +179,46 @@ INT_PTR CALLBACK Edit(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			return (INT_PTR)TRUE;
 
 		case IDC_ADD_L:
-		{
-			ShiftPosition(hDlg, IDC_LEFT, 1);
+			widget->rect.left = ShiftPosition(hDlg, IDC_LEFT, 1);
 			break;
-		}
 
 		case IDC_SUBTRACT_L:
-		{
-			ShiftPosition(hDlg, IDC_LEFT, -1);
+			widget->rect.left = ShiftPosition(hDlg, IDC_LEFT, -1);
 			break;
-		}
 
 		case IDC_ADD_R:
 		{
-			ShiftPosition(hDlg, IDC_RIGHT, 1);
+			widget->rect.left = ShiftPosition(hDlg, IDC_RIGHT, 1);
 			break;
 		}
 
 		case IDC_SUBTRACT_R:
 		{
-			ShiftPosition(hDlg, IDC_RIGHT, -1);
+			widget->rect.left = ShiftPosition(hDlg, IDC_RIGHT, -1);
 			break;
 		}
 
 		case IDC_ADD_T:
 		{
-			ShiftPosition(hDlg, IDC_TOP, 1);
+			widget->rect.left = ShiftPosition(hDlg, IDC_TOP, 1);
 			break;
 		}
 
 		case IDC_SUBTRACT_T:
 		{
-			ShiftPosition(hDlg, IDC_TOP, -1);
+			widget->rect.left = ShiftPosition(hDlg, IDC_TOP, -1);
 			break;
 		}
 
 		case IDC_ADD_B:
 		{
-			ShiftPosition(hDlg, IDC_BOTTOM, 1);
+			widget->rect.left = ShiftPosition(hDlg, IDC_BOTTOM, 1);
 			break;
 		}
 
 		case IDC_SUBTRACT_B:
 		{
-			ShiftPosition(hDlg, IDC_BOTTOM, -1);
+			widget->rect.left = ShiftPosition(hDlg, IDC_BOTTOM, -1);
 			break;
 		}
 
@@ -253,12 +250,12 @@ void TreeBranch(HWND hwndTV, LPWSTR pszText, HTREEITEM hParent)
 	TreeView_InsertItem(hwndTV, &tvins);
 }
 
-void ShiftPosition(HWND hDlg, int idc, int shift)
+USHORT ShiftPosition(HWND hDlg, int idc, int shift)
 {
 	// Get value
 	LPWSTR value = new WCHAR[8];
 	GetDlgItemText(hDlg, idc, value, sizeof(value));
-	
+
 	// Change value
 	USHORT evalue = _wtoi(value) + shift;
 	std::wstring v = std::to_wstring(evalue);
@@ -266,4 +263,6 @@ void ShiftPosition(HWND hDlg, int idc, int shift)
 	// Set value
 	SetDlgItemText(hDlg, idc, v.c_str());
 	delete[] value;
+
+	return evalue;
 }

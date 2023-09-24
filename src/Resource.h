@@ -16,7 +16,6 @@
 #define IDR_MENU                        130
 #define IDD_EDIT                        131
 #define IDD_DIALOG1                     132
-#define IDD_NEW                         132
 #define IDC_LATITUDE                    1008
 #define IDC_LOGITUDE                    1009
 #define IDC_LONGITUDE                   1009

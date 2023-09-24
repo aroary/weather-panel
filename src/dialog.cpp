@@ -255,11 +255,15 @@ void TreeBranch(HWND hwndTV, LPWSTR pszText, HTREEITEM hParent)
 
 void ShiftPosition(HWND hDlg, int idc, int shift)
 {
-	LPWSTR value = new WCHAR[16];
+	// Get value
+	LPWSTR value = new WCHAR[8];
 	GetDlgItemText(hDlg, idc, value, sizeof(value));
-	int evalue = _wtoi(value) + shift;
-	memset(value, 0, sizeof(value));
-	_itow_s(evalue, value, sizeof(value), 9);
-	SetDlgItemText(hDlg, idc, value);
+	
+	// Change value
+	USHORT evalue = _wtoi(value) + shift;
+	std::wstring v = std::to_wstring(evalue);
+
+	// Set value
+	SetDlgItemText(hDlg, idc, v.c_str());
 	delete[] value;
 }

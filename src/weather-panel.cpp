@@ -123,7 +123,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			// Repaint window.
 			InvalidateRect(hWnd, &client, false);
-
+			
 			MessageBox(NULL, L"Dashboard syncronized.", L"Sync", MB_ICONINFORMATION | MB_OK);
 			break;
 

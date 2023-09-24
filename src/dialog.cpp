@@ -72,7 +72,7 @@ INT_PTR CALLBACK Settings(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			else if (command == "cellselection")
 				CheckRadioButton(hDlg, IDC_SCELL_LAND, IDC_SCELL_SEA, IDC_SCELL_LAND);
 			else;
-		});
+			});
 
 		return (INT_PTR)TRUE;
 	}
@@ -168,48 +168,36 @@ INT_PTR CALLBACK Edit(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			return (INT_PTR)TRUE;
 
 		case IDC_ADD_L:
-			widget->rect.left = ShiftPosition(hDlg, IDC_LEFT, 1);
+			widget->rect.left = ShiftPosition(hDlg, IDC_LEFT, 1) - 1;
 			break;
 
 		case IDC_SUBTRACT_L:
-			widget->rect.left = ShiftPosition(hDlg, IDC_LEFT, -1);
+			widget->rect.left = ShiftPosition(hDlg, IDC_LEFT, -1) - 1;
 			break;
 
 		case IDC_ADD_R:
-		{
-			widget->rect.right = ShiftPosition(hDlg, IDC_RIGHT, 1);
+			widget->rect.right = ShiftPosition(hDlg, IDC_RIGHT, 1) - 1;
 			break;
-		}
 
 		case IDC_SUBTRACT_R:
-		{
-			widget->rect.right = ShiftPosition(hDlg, IDC_RIGHT, -1);
+			widget->rect.right = ShiftPosition(hDlg, IDC_RIGHT, -1) - 1;
 			break;
-		}
 
 		case IDC_ADD_T:
-		{
-			widget->rect.top = ShiftPosition(hDlg, IDC_TOP, 1);
+			widget->rect.top = ShiftPosition(hDlg, IDC_TOP, 1) - 1;
 			break;
-		}
 
 		case IDC_SUBTRACT_T:
-		{
-			widget->rect.top = ShiftPosition(hDlg, IDC_TOP, -1);
+			widget->rect.top = ShiftPosition(hDlg, IDC_TOP, -1) - 1;
 			break;
-		}
 
 		case IDC_ADD_B:
-		{
-			widget->rect.bottom = ShiftPosition(hDlg, IDC_BOTTOM, 1);
+			widget->rect.bottom = ShiftPosition(hDlg, IDC_BOTTOM, 1) - 1;
 			break;
-		}
 
 		case IDC_SUBTRACT_B:
-		{
-			widget->rect.bottom = ShiftPosition(hDlg, IDC_BOTTOM, -1);
+			widget->rect.bottom = ShiftPosition(hDlg, IDC_BOTTOM, -1) - 1;
 			break;
-		}
 
 		case IDC_RESET:
 			TreeView_DeleteAllItems(hwndTV);

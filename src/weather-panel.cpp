@@ -182,9 +182,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case ID_NEW:
 		{
-			RECT rect{ 0, 0, 2, 2 };
-
-			selection = new Widget((int)dashboard.widgets.size(), rect);
+			selection = new Widget((int)dashboard.widgets.size(), { 0, 0, 2, 2 });
 
 		EDIT:
 			INT_PTR result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)selection);
@@ -206,16 +204,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (selection != nullptr) // To surpress C6011
 			{
-				Widget widget = *selection;
-				INT_PTR result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)selection);
+				Widget* widget = new Widget(NULL, selection->rect); // Dummy instance
 
-				if (result == IDCANCEL)
-					selection = &widget;
-				else
+				INT_PTR result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)widget);
+
+				if (result == IDOK && dashboard.replace(widget, widget->rect))
 				{
-					if (!dashboard.replace(selection, selection->rect))
-						selection = &widget;
+					selection->title = widget->title;
+					selection->rect = widget->rect;
+					selection->units = widget->units;
 				}
+
+				delete widget;
 			}
 			break;
 		}
@@ -336,7 +336,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					MoveToEx(mdc, scaledRect.left, (scaledRect.top) + box, NULL);
 					LineTo(mdc, scaledRect.right, (scaledRect.top) + box);
 
-					// Find value and assign it to `value`.
+					// Find value and show it.
 					if (widget->data[i][0]->s != nullptr)
 					{
 						string data = *widget->data[i][0]->s;

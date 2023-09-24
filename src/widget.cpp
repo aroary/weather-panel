@@ -18,7 +18,7 @@ Widget::~Widget()
 	this->units.clear();
 }
 
-bool Dashboard::replace(int id, RECT rect)
+bool Dashboard::replace(Widget* select, RECT rect)
 {
 	// Validate new widget size.
 	if (rect.right - rect.left < 2 || rect.bottom - rect.top < 2)
@@ -26,15 +26,16 @@ bool Dashboard::replace(int id, RECT rect)
 
 	// Check for intersection with existing widgets.
 	for (Widget* widget : this->widgets)
-		if (widget->id != id && rect.left < widget->rect.right && rect.right > widget->rect.left && rect.top < widget->rect.bottom && rect.bottom > widget->rect.top)
+		if (widget->id != select->id && rect.left < widget->rect.right && rect.right > widget->rect.left && rect.top < widget->rect.bottom && rect.bottom > widget->rect.top)
 			return false;
 
 	// Relocate to new position.
-	this->widgets.at(id)->rect = { rect.left, rect.top, rect.right, rect.bottom };
+	select->rect = { rect.left, rect.top, rect.right, rect.bottom };
 
 	// Save the changes
 	this->save();
 
+	// Return success
 	return true;
 }
 
@@ -63,6 +64,7 @@ bool Dashboard::save()
 		for (Widget* widget : this->widgets)
 		{
 			file << "widget " << widget->rect.left << " " << widget->rect.top << " " << widget->rect.right << " " << widget->rect.bottom;
+			file << " \"" << widget->title << '"';
 
 			for (std::string field : widget->fields)
 				file << " " << field;

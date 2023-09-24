@@ -25,7 +25,7 @@ public:
 	vector<string>   hourtime;  // Time of hour data
 	vector<string>   daytime;   // Time of day data
 
-	bool replace(int, RECT);
+	bool replace(Widget*, RECT);
 	bool save();
 	void update();
 

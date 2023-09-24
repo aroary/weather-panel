@@ -123,7 +123,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			// Repaint window.
 			InvalidateRect(hWnd, &client, false);
-			
+
 			MessageBox(NULL, L"Dashboard syncronized.", L"Sync", MB_ICONINFORMATION | MB_OK);
 			break;
 
@@ -180,20 +180,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		switch (item)
 		{
 		case ID_NEW:
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_NEW), hWnd, About);
+		{
+			RECT rect{ 0, 0, 2, 2 };
+
+			selection = new Widget(dashboard.widgets.size(), rect);
+
+		EDIT:
+			UINT result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)selection);
+			
+			if (result == IDCANCEL)
+				delete selection;
+			else 
+			{
+				if (dashboard.replace(selection, selection->rect))
+					dashboard.widgets.push_back(selection);
+				else
+					goto EDIT;
+			}
+
 			break;
+		}
 
 		case ID_EDIT:
 			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)selection);
 			break;
 
 		case ID_DELETE:
-			dashboard.widgets.erase(dashboard.widgets.begin() + selection->id);
+		{
+			if (selection != nullptr) // To surpress C6011
+				dashboard.widgets.erase(dashboard.widgets.begin() + selection->id);
 
 			delete selection;
 
 			dashboard.save();
 			break;
+		}
 
 		default:
 			break;
@@ -287,7 +308,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (dashboard.weather.success)
 				for (int i = 0; i < widget->fields.size(); i++)
 				{
-					wstring title = wstring(widget->fields[i].begin(), widget->fields[i].end());
+					wstring title = wstring(widget->title.begin(), widget->title.end());
 					wstring value;
 
 					// Find value and assign it to `value`.
@@ -380,7 +401,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				resize = WD_NORESIZE;
 
 				// Move widget to new place
-				dashboard.replace(drag->id, position);
+				dashboard.replace(drag, position);
 
 				// Reset the drag flag
 				drag = nullptr;
@@ -414,11 +435,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					iss >> command;
 					if (command == "widget")
 					{
+						// Find the widget position
 						RECT position{};
 						iss >> position.left >> position.top >> position.right >> position.bottom;
 
+						// Create widget
 						Widget* widget = new Widget((int)dashboard.widgets.size(), position);
 
+						// Set widget title
+						string title;
+						while (iss >> title)
+						{
+							if (title.back() == '"')
+							{
+								widget->title += title;
+								break;
+							}
+							else
+								widget->title += title + " ";
+						}
+
+						widget->title.erase(0, widget->title.find_first_not_of('"'));
+						widget->title.erase(widget->title.find_last_not_of('"') + 1, string::npos);
+
+						// Set widget fields
 						string field;
 						while (iss >> field)
 							widget->fields.push_back(field);

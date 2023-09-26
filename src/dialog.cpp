@@ -3,7 +3,6 @@
 #include "weather-panel.h"
 #include "weather-api.h"
 #include "widget.h"
-#include "settings.h"
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -38,41 +37,44 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 // Message handler for settings box.
 INT_PTR CALLBACK Settings(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	static Dashboard* dashboard;
+
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
 	{
 	case WM_INITDIALOG:
 	{
-		configure("weather.conf", [&hDlg](string line) {
-			std::istringstream iss(line);
-			std::string command;
-			std::string value;
+		dashboard = (Dashboard*)lParam;
 
-			iss >> command;
-			iss >> value;
+		SetDlgItemText(hDlg, IDC_TIMEZONE, std::wstring(dashboard->weather.timezone.begin(), dashboard->weather.timezone.end()).c_str());
+		SetDlgItemText(hDlg, IDC_LATITUDE, std::to_wstring(dashboard->weather.latitude).c_str());
+		SetDlgItemText(hDlg, IDC_LONGITUDE, std::to_wstring(dashboard->weather.longitude).c_str());
+		SetDlgItemText(hDlg, IDC_ELEVATION, std::to_wstring(dashboard->weather.elevation).c_str());
 
-			std::wstring wvalue(value.begin(), value.end());
+		if (dashboard->weather.temperature_unit == "celsius")
+			CheckRadioButton(hDlg, IDC_UTEMPERATURE_F, IDC_UTEMPERATURE_C, IDC_UTEMPERATURE_C);
+		else
+			CheckRadioButton(hDlg, IDC_UTEMPERATURE_F, IDC_UTEMPERATURE_C, IDC_UTEMPERATURE_F);
 
-			if (command == "box")
-				SetDlgItemInt(hDlg, IDC_BOX, 20, false);
-			else if (command == "timezone")
-				SetDlgItemText(hDlg, IDC_TIMEZONE, wvalue.c_str());
-			else if (command == "latitude")
-				SetDlgItemText(hDlg, IDC_LATITUDE, wvalue.c_str());
-			else if (command == "longitude")
-				SetDlgItemText(hDlg, IDC_LONGITUDE, wvalue.c_str());
-			else if (command == "elevation")
-				SetDlgItemText(hDlg, IDC_ELEVATION, wvalue.c_str());
-			else if (command == "temperatureunit")
-				CheckRadioButton(hDlg, IDC_UTEMPERATURE_F, IDC_UTEMPERATURE_C, IDC_UTEMPERATURE_F);
-			else if (command == "windspeedunit")
-				CheckRadioButton(hDlg, IDC_UWINDSPEED_KMH, IDC_UWINDSPEED_KN, IDC_UWINDSPEED_MH);
-			else if (command == "precipitationunit")
-				CheckRadioButton(hDlg, IDC_UPRECIPITATION_MM, IDC_UPRECIPITATION_INCH, IDC_UPRECIPITATION_INCH);
-			else if (command == "cellselection")
-				CheckRadioButton(hDlg, IDC_SCELL_LAND, IDC_SCELL_SEA, IDC_SCELL_LAND);
-			else;
-			});
+		if (dashboard->weather.windspeed_unit == "kmh")
+			CheckRadioButton(hDlg, IDC_UWINDSPEED_KMH, IDC_UWINDSPEED_KN, IDC_UWINDSPEED_KMH);
+		else if (dashboard->weather.windspeed_unit == "ms")
+			CheckRadioButton(hDlg, IDC_UWINDSPEED_KMH, IDC_UWINDSPEED_KN, IDC_UWINDSPEED_MS);
+		else if (dashboard->weather.windspeed_unit == "kn")
+			CheckRadioButton(hDlg, IDC_UWINDSPEED_KMH, IDC_UWINDSPEED_KN, IDC_UWINDSPEED_KN);
+		else
+			CheckRadioButton(hDlg, IDC_UWINDSPEED_KMH, IDC_UWINDSPEED_KN, IDC_UWINDSPEED_MH);
+
+		if (dashboard->weather.precipitation_unit == "mm")
+			CheckRadioButton(hDlg, IDC_UPRECIPITATION_MM, IDC_UPRECIPITATION_INCH, IDC_UPRECIPITATION_MM);
+		else
+			CheckRadioButton(hDlg, IDC_UPRECIPITATION_MM, IDC_UPRECIPITATION_INCH, IDC_UPRECIPITATION_INCH);
+
+		if (dashboard->weather.cell_selection == "land")
+			CheckRadioButton(hDlg, IDC_SCELL_LAND, IDC_SCELL_SEA, IDC_SCELL_LAND);
+		else if (dashboard->weather.cell_selection == "sea")
+			CheckRadioButton(hDlg, IDC_SCELL_LAND, IDC_SCELL_SEA, IDC_SCELL_SEA);
+		else; // AUTO
 
 		return (INT_PTR)TRUE;
 	}

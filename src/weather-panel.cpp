@@ -144,7 +144,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case ID_EDIT_SETTINGS:
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hWnd, Settings);
+			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hWnd, Settings, (LPARAM)&dashboard);
 			break;
 
 		default:

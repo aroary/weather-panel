@@ -237,6 +237,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	break;
 
+	case WM_LBUTTONUP:
+	{
+		// Drop
+		if (drag != nullptr)
+		{
+			RECT position{ drag->rect.left, drag->rect.top, drag->rect.right, drag->rect.bottom };
+
+			// Scale
+			ScaleOut(box, position);
+
+			reposition(resize, drag, position, cursor, box);
+
+			// Scale
+			ScaleIn(box, position);
+
+			// Move widget to new place
+			dashboard.replace(drag, position);
+
+			// Reset resize flag
+			resize = WD_NORESIZE;
+
+			// Reset the drag flag
+			drag = nullptr;
+
+			// Repaint window
+			InvalidateRect(hWnd, &client, false);
+		}
+
+		break;
+	}
+
 	case WM_SIZE:
 		GetClientRect(hWnd, &client);
 		break;
@@ -380,50 +411,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Draggage
 		if (drag != nullptr)
 		{
-			RECT position{ drag->rect.left * box, drag->rect.top * box, drag->rect.right * box, drag->rect.bottom * box };
+			RECT position{ drag->rect.left, drag->rect.top, drag->rect.right, drag->rect.bottom };
 
-			if (resize)
-			{
-				if (resize & WD_SOUTHRESIZE)
-					position.bottom = cursor.y - cursor.y % box + box;
+			// Scale
+			ScaleOut(box, position);
 
-				if (resize & WD_EASTRESIZE)
-					position.right = cursor.x - cursor.x % box + box;
+			// Position
+			reposition(resize, drag, position, cursor, box);
 
-				if (resize & WD_WESTRESIZE)
-					position.left = static_cast<LONG>(cursor.x - cursor.x % box);
-			}
-			else
-			{
-				UINT   width = (drag->rect.right - drag->rect.left) * box;
-				UINT   height = (drag->rect.bottom - drag->rect.top) * box;
-				POINT  offset{ static_cast<LONG>(((cursor.x - width / 2) % box) - box), static_cast<LONG>((cursor.y - box / 2) % box) };
-
-				position.left = (cursor.x - width / 2) - offset.x;
-				position.top = (cursor.y - box / 2) - offset.y;
-				position.right = (cursor.x + width / 2) - offset.x;
-				position.bottom = (cursor.y + height - box / 2) - offset.y;
-			}
-
-			if ((GetKeyState(VK_LBUTTON) & 0x8000) != 0) // Drag
-				InvertRect(mdc, &position);
-			else // Drop
-			{
-				// Scale
-				position.left /= box;
-				position.top /= box;
-				position.right /= box;
-				position.bottom /= box;
-
-				// Reset resize flag
-				resize = WD_NORESIZE;
-
-				// Move widget to new place
-				dashboard.replace(drag, position);
-
-				// Reset the drag flag
-				drag = nullptr;
-			}
+			InvertRect(mdc, &position);
 		}
 
 		BitBlt(hdc, 0, 0, client.right - client.left, client.bottom - client.top, mdc, 0, 0, SRCCOPY);
@@ -494,7 +490,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			else if (command == "cellselection")
 				iss >> dashboard.weather.cell_selection;
 			else;
-		});
+			});
 
 		// Initialize dashboard data.
 		dashboard.weather.current_weather = true;

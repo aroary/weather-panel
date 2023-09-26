@@ -112,14 +112,14 @@ void Dashboard::update()
 	else
 	{
 		this->weather.success = true;
-		
+
 		if (weather.count("hourly"))
 		{
 			this->hourtime = weather["hourly"]["time"].get<vector<string>>();
 			for (int i = 0; i < this->hourtime.size(); i++)
 				this->hourtime[i] = this->hourtime[i].erase(0, 11);
 		}
-		
+
 		if (weather.count("daily"))
 		{
 			this->daytime = weather["daily"]["time"].get<vector<string>>();
@@ -178,4 +178,52 @@ Data::~Data()
 	delete this->d;
 	delete this->i;
 	delete this->v;
+}
+
+RECT reposition(int resize, Widget* widget, RECT& position, POINT cursor, int scale)
+{
+	if (resize)
+	{
+		if (resize & WD_SOUTHRESIZE)
+			position.bottom = cursor.y - cursor.y % scale + scale;
+
+		if (resize & WD_EASTRESIZE)
+			position.right = cursor.x - cursor.x % scale + scale;
+
+		if (resize & WD_WESTRESIZE)
+			position.left = static_cast<LONG>(cursor.x - cursor.x % scale);
+	}
+	else
+	{
+		UINT   width = (widget->rect.right - widget->rect.left) * scale;
+		UINT   height = (widget->rect.bottom - widget->rect.top) * scale;
+		POINT  offset{ static_cast<LONG>(((cursor.x - width / 2) % scale) - scale), static_cast<LONG>((cursor.y - scale / 2) % scale) };
+
+		position.left = (cursor.x - width / 2) - offset.x;
+		position.top = (cursor.y - scale / 2) - offset.y;
+		position.right = (cursor.x + width / 2) - offset.x;
+		position.bottom = (cursor.y + height - scale / 2) - offset.y;
+	}
+
+	return position;
+}
+
+RECT ScaleIn(int scale, RECT& rect)
+{
+	rect.left /= scale;
+	rect.top /= scale;
+	rect.right /= scale;
+	rect.bottom /= scale;
+
+	return rect;
+}
+
+RECT ScaleOut(int scale, RECT& rect)
+{
+	rect.left *= scale;
+	rect.top *= scale;
+	rect.right *= scale;
+	rect.bottom *= scale;
+
+	return rect;
 }

@@ -54,3 +54,9 @@ struct Data
 	double* d = nullptr;
 	int64_t* i = nullptr;
 };
+
+// Change position of widget to mouse position
+RECT reposition(int, Widget*, RECT&, POINT, int);
+
+RECT ScaleIn(int, RECT&);
+RECT ScaleOut(int, RECT&);

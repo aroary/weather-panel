@@ -204,7 +204,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (selection != nullptr) // To surpress C6011
 			{
-				Widget* widget = new Widget(NULL, selection->rect); // Dummy instance
+				Widget* widget = new Widget(selection->id, selection->rect); // Dummy instance
+				widget->title = selection->title;
+				widget->fields = selection->fields;
 
 				INT_PTR result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_EDIT), hWnd, Edit, (LPARAM)widget);
 
@@ -212,7 +214,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				{
 					selection->title = widget->title;
 					selection->rect = widget->rect;
-					selection->units = widget->units;
+					selection->fields = widget->fields;
 				}
 
 				delete widget;

@@ -311,7 +311,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			UINT height = (widget->rect.bottom - widget->rect.top);
 			UINT pwidth = width * box;
 			UINT pheight = height * box;
-			RECT scaledRect{ widget->rect.left * box, widget->rect.top * box, widget->rect.right * box, widget->rect.bottom * box };
+			RECT scaledRect = widget->rect;
+			ScaleOut(box, scaledRect);
 
 			SelectObject(mdc, pen);
 
@@ -437,62 +438,64 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		GetCursorPos(&cursor);
 		ScreenToClient(hWnd, &cursor);
 
-		configure("weather.conf", [](string line) {
-			std::istringstream iss(line);
-			string command;
-			iss >> command;
-			if (command == "widget")
+		configure("weather.conf", [](string line)
 			{
-				// Find the widget position
-				RECT position{};
-				iss >> position.left >> position.top >> position.right >> position.bottom;
-
-				// Create widget
-				Widget* widget = new Widget((int)dashboard.widgets.size(), position);
-
-				// Set widget title
-				string title;
-				while (iss >> title)
+				std::istringstream iss(line);
+				string command;
+				iss >> command;
+				if (command == "widget")
 				{
-					if (title.back() == '"')
+					// Find the widget position
+					RECT position{};
+					iss >> position.left >> position.top >> position.right >> position.bottom;
+
+					// Create widget
+					Widget* widget = new Widget((int)dashboard.widgets.size(), position);
+
+					// Set widget title
+					string title;
+					while (iss >> title)
 					{
-						widget->title += title;
-						break;
+						if (title.back() == '"')
+						{
+							widget->title += title;
+							break;
+						}
+						else
+							widget->title += title + " ";
 					}
-					else
-						widget->title += title + " ";
+
+					widget->title.erase(0, widget->title.find_first_not_of('"'));
+					widget->title.erase(widget->title.find_last_not_of('"') + 1, string::npos);
+
+					// Set widget fields
+					string field;
+					while (iss >> field)
+						widget->fields.push_back(field);
+
+					dashboard.widgets.push_back(widget);
 				}
-
-				widget->title.erase(0, widget->title.find_first_not_of('"'));
-				widget->title.erase(widget->title.find_last_not_of('"') + 1, string::npos);
-
-				// Set widget fields
-				string field;
-				while (iss >> field)
-					widget->fields.push_back(field);
-
-				dashboard.widgets.push_back(widget);
+				else if (command == "box")
+					iss >> box;
+				else if (command == "timezone")
+					iss >> dashboard.weather.timezone;
+				else if (command == "latitude")
+					iss >> dashboard.weather.latitude;
+				else if (command == "longitude")
+					iss >> dashboard.weather.longitude;
+				else if (command == "elevation")
+					iss >> dashboard.weather.elevation;
+				else if (command == "temperatureunit")
+					iss >> dashboard.weather.temperature_unit;
+				else if (command == "windspeedunit")
+					iss >> dashboard.weather.windspeed_unit;
+				else if (command == "precipitationunit")
+					iss >> dashboard.weather.precipitation_unit;
+				else if (command == "cellselection")
+					iss >> dashboard.weather.cell_selection;
+				else;
 			}
-			else if (command == "box")
-				iss >> box;
-			else if (command == "timezone")
-				iss >> dashboard.weather.timezone;
-			else if (command == "latitude")
-				iss >> dashboard.weather.latitude;
-			else if (command == "longitude")
-				iss >> dashboard.weather.longitude;
-			else if (command == "elevation")
-				iss >> dashboard.weather.elevation;
-			else if (command == "temperatureunit")
-				iss >> dashboard.weather.temperature_unit;
-			else if (command == "windspeedunit")
-				iss >> dashboard.weather.windspeed_unit;
-			else if (command == "precipitationunit")
-				iss >> dashboard.weather.precipitation_unit;
-			else if (command == "cellselection")
-				iss >> dashboard.weather.cell_selection;
-			else;
-			});
+		);
 
 		// Initialize dashboard data.
 		dashboard.weather.current_weather = true;

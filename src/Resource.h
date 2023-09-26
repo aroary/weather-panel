@@ -52,6 +52,9 @@
 #define IDC_FIELDS                      1047
 #define IDC_EDIT2                       1052
 #define IDC_TITLE                       1052
+#define IDC_SCELL_NEAR                  1053
+#define IDC_BUTTON2                     1054
+#define IDC_TIMEZONE_AUTO               1054
 #define ID_VIEW                         32771
 #define ID_HELP_CONTRIBUTE              32772
 #define ID_HELP_LICENCE                 32773
@@ -81,7 +84,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32791
-#define _APS_NEXT_CONTROL_VALUE         1053
+#define _APS_NEXT_CONTROL_VALUE         1055
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

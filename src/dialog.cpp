@@ -51,11 +51,7 @@ INT_PTR CALLBACK Settings(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SetDlgItemText(hDlg, IDC_LONGITUDE, std::to_wstring(dashboard->weather.longitude).c_str());
 		SetDlgItemText(hDlg, IDC_ELEVATION, std::to_wstring(dashboard->weather.elevation).c_str());
 
-		if (dashboard->weather.temperature_unit == "celsius")
-			CheckRadioButton(hDlg, IDC_UTEMPERATURE_F, IDC_UTEMPERATURE_C, IDC_UTEMPERATURE_C);
-		else
-			CheckRadioButton(hDlg, IDC_UTEMPERATURE_F, IDC_UTEMPERATURE_C, IDC_UTEMPERATURE_F);
-
+		// Set Windspeed Unit
 		if (dashboard->weather.windspeed_unit == "kmh")
 			CheckRadioButton(hDlg, IDC_UWINDSPEED_KMH, IDC_UWINDSPEED_KN, IDC_UWINDSPEED_KMH);
 		else if (dashboard->weather.windspeed_unit == "ms")
@@ -65,37 +61,55 @@ INT_PTR CALLBACK Settings(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		else
 			CheckRadioButton(hDlg, IDC_UWINDSPEED_KMH, IDC_UWINDSPEED_KN, IDC_UWINDSPEED_MH);
 
+		// Set Cell Selection
+		if (dashboard->weather.cell_selection == "land")
+			CheckRadioButton(hDlg, IDC_SCELL_LAND, IDC_SCELL_NEAR, IDC_SCELL_LAND);
+		else if (dashboard->weather.cell_selection == "sea")
+			CheckRadioButton(hDlg, IDC_SCELL_LAND, IDC_SCELL_NEAR, IDC_SCELL_SEA);
+		else
+			CheckRadioButton(hDlg, IDC_SCELL_LAND, IDC_SCELL_NEAR, IDC_SCELL_NEAR);
+
+		// Set Precipitation Unit
 		if (dashboard->weather.precipitation_unit == "mm")
 			CheckRadioButton(hDlg, IDC_UPRECIPITATION_MM, IDC_UPRECIPITATION_INCH, IDC_UPRECIPITATION_MM);
 		else
 			CheckRadioButton(hDlg, IDC_UPRECIPITATION_MM, IDC_UPRECIPITATION_INCH, IDC_UPRECIPITATION_INCH);
 
-		if (dashboard->weather.cell_selection == "land")
-			CheckRadioButton(hDlg, IDC_SCELL_LAND, IDC_SCELL_SEA, IDC_SCELL_LAND);
-		else if (dashboard->weather.cell_selection == "sea")
-			CheckRadioButton(hDlg, IDC_SCELL_LAND, IDC_SCELL_SEA, IDC_SCELL_SEA);
-		else; // AUTO
+		// Set Temperature Unit
+		if (dashboard->weather.temperature_unit == "celsius")
+			CheckRadioButton(hDlg, IDC_UTEMPERATURE_F, IDC_UTEMPERATURE_C, IDC_UTEMPERATURE_C);
+		else
+			CheckRadioButton(hDlg, IDC_UTEMPERATURE_F, IDC_UTEMPERATURE_C, IDC_UTEMPERATURE_F);
 
 		return (INT_PTR)TRUE;
 	}
 
 	case WM_COMMAND:
-		if (LOWORD(wParam) == IDCANCEL)
+		switch (LOWORD(wParam))
 		{
+		case IDC_TIMEZONE_AUTO:
+			SetDlgItemText(hDlg, IDC_TIMEZONE, L"auto");
+			break;
+
+		case IDCANCEL:
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
-		}
-		else if (LOWORD(wParam) == IDOK)
-		{
+			break;
+
+		case IDOK:
 			//IsDlgButtonChecked(hDlg, buttonID) == BST_CHECKED
 
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
-		}
-		else if (LOWORD(wParam) == IDC_RESET)
-		{
+			break;
+
+		case IDC_RESET:
 			SendMessage(hDlg, WM_INITDIALOG, NULL, NULL);
 			return (INT_PTR)TRUE;
+			break;
+
+		default:
+			break;
 		}
 		break;
 	}

@@ -142,31 +142,34 @@ void Dashboard::update()
 				widget->data.push_back({});
 
 			// Add data.
-			for (int i = 0; i < widget->fields.size(); i++)
+			int i = 0;
+			for (string field : widget->fields)
 			{
 				Data* data = new Data;
 
-				if (weather.count(widget->fields[i]))
+				if (weather.count(field))
 				{
-					if (weather[widget->fields[i]].is_string())
-						data->s = new string(weather[widget->fields[i]].get<string>());
-					else if (weather[widget->fields[i]].is_number())
-						data->d = new double(weather[widget->fields[i]].get<double>());
+					if (weather[field].is_string())
+						data->s = new string(weather[field].get<string>());
+					else if (weather[field].is_number())
+						data->d = new double(weather[field].get<double>());
 
 					widget->units.push_back("");
 				}
-				else if (weather.count("hourly") && weather["hourly"].count(widget->fields[i]))
+				else if (weather.count("hourly") && weather["hourly"].count(field))
 				{
-					data->v = new vector<double>(weather["hourly"][widget->fields[i]].get<vector<double>>());
-					widget->units.push_back(weather["hourly_units"][widget->fields[i]].get<string>());
+					data->v = new vector<double>(weather["hourly"][field].get<vector<double>>());
+					widget->units.push_back(weather["hourly_units"][field].get<string>());
 				}
-				else if (weather.count("daily") && weather["daily"].count(widget->fields[i]))
+				else if (weather.count("daily") && weather["daily"].count(field))
 				{
-					data->v = new vector<double>(weather["daily"][widget->fields[i]].get<vector<double>>());
-					widget->units.push_back(weather["hourly_units"][widget->fields[i]].get<string>());
+					data->v = new vector<double>(weather["daily"][field].get<vector<double>>());
+					widget->units.push_back(weather["hourly_units"][field].get<string>());
 				}
 
 				widget->data[i].push_back(data);
+				
+				i++;
 			}
 		}
 	}

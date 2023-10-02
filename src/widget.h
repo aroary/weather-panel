@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <string>
 #include <vector>
+#include <set>
 #include "weather-api.h"
 
 #define WD_NORESIZE     0x00000000L  // No resize action.
@@ -12,6 +13,7 @@
 
 using std::string;
 using std::vector;
+using std::set;
 
 class Widget;
 
@@ -40,7 +42,7 @@ public:
 	int                    id;      // Index of the widget on the dashboard (vector.size())
 	RECT                   rect;    // Widget size and location
 	string                 title;   // Header of widget
-	vector<string>         fields;  // Fields of data
+	set<string>            fields;  // Fields of data
 	vector<vector<Data*>>  data;    // Data pointers
 	vector<string>         units;   // The unit of the data of the fields
 };

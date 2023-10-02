@@ -471,7 +471,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					// Set widget fields
 					string field;
 					while (iss >> field)
-						widget->fields.push_back(field);
+						widget->fields.insert(field);
 
 					dashboard.widgets.push_back(widget);
 				}

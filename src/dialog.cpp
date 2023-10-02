@@ -10,7 +10,7 @@
 #include <commctrl.h>
 
 // Forward declarations
-void TreeBranch(HWND, LPWSTR, HTREEITEM);
+void TreeBranch(HWND, LPWSTR, UINT, HTREEITEM);
 USHORT ShiftPosition(HWND, int, int);
 
 // Message handler for about box.
@@ -89,24 +89,21 @@ INT_PTR CALLBACK Settings(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case IDC_TIMEZONE_AUTO:
 			SetDlgItemText(hDlg, IDC_TIMEZONE, L"auto");
-			break;
+			return (INT_PTR)TRUE;
 
 		case IDCANCEL:
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
-			break;
 
 		case IDOK:
 			//IsDlgButtonChecked(hDlg, buttonID) == BST_CHECKED
 
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
-			break;
 
 		case IDC_RESET:
 			SendMessage(hDlg, WM_INITDIALOG, NULL, NULL);
 			return (INT_PTR)TRUE;
-			break;
 
 		default:
 			break;
@@ -137,37 +134,30 @@ INT_PTR CALLBACK Edit(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SetDlgItemText(hDlg, IDC_TOP, std::to_wstring(widget->rect.top + 1).c_str());
 		SetDlgItemText(hDlg, IDC_BOTTOM, std::to_wstring(widget->rect.bottom + 1).c_str());
 
-		HTREEITEM hNext;
-
-		for (std::string field : api::options::setting)
-			TreeBranch(hwndTV, const_cast<LPWSTR>(std::wstring(field.begin(), field.end()).c_str()), TVI_ROOT);
-
+		// Current treeview item
 		HTREEITEM hti = TreeView_GetNextItem(hwndTV, NULL, TVGN_ROOT);
 
-		TreeBranch(hwndTV, const_cast<LPWSTR>(L"hourly"), TVI_ROOT);
+		// Append items to last branch
+		for (std::string field : api::options::setting)
+			TreeBranch(hwndTV, const_cast<LPWSTR>(std::wstring(field.begin(), field.end()).c_str()), widget->fields.contains(field), TVI_ROOT);
 
-		hNext = TreeView_GetNextItem(hwndTV, hti, TVGN_NEXT);
-		while (hNext)
-		{
-			hti = hNext;
-			hNext = TreeView_GetNextItem(hwndTV, hti, TVGN_NEXT);
-		}
+		TreeBranch(hwndTV, const_cast<LPWSTR>(L"hourly"), FALSE, TVI_ROOT);
 
+		// Get last treeview item
+		hti = TreeView_GetNextItem(hwndTV, hti, TVGN_LASTVISIBLE);
+
+		// Append items to last branch
 		for (std::string field : api::options::hourly)
-			TreeBranch(hwndTV, const_cast<LPWSTR>(std::wstring(field.begin(), field.end()).c_str()), hti);
+			TreeBranch(hwndTV, const_cast<LPWSTR>(std::wstring(field.begin(), field.end()).c_str()), widget->fields.contains(field), hti);
 
-		TreeBranch(hwndTV, const_cast<LPWSTR>(L"daily"), TVI_ROOT);
+		TreeBranch(hwndTV, const_cast<LPWSTR>(L"daily"), FALSE, TVI_ROOT);
 
-		hNext = TreeView_GetNextItem(hwndTV, hti, TVGN_NEXT);
-		TreeView_SetCheckState(hwndTV, hNext, BST_CHECKED);
-		while (hNext)
-		{
-			hti = hNext;
-			hNext = TreeView_GetNextItem(hwndTV, hti, TVGN_NEXT);
-		}
+		// Get last treeview item
+		hti = TreeView_GetNextItem(hwndTV, hti, TVGN_LASTVISIBLE);
 
+		// Append items to last branch
 		for (std::string field : api::options::daily)
-			TreeBranch(hwndTV, const_cast<LPWSTR>(std::wstring(field.begin(), field.end()).c_str()), hti);
+			TreeBranch(hwndTV, const_cast<LPWSTR>(std::wstring(field.begin(), field.end()).c_str()), widget->fields.contains(field), hti);
 
 		return (INT_PTR)TRUE;
 	}
@@ -180,8 +170,46 @@ INT_PTR CALLBACK Edit(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			return (INT_PTR)TRUE;
 
 		case IDOK:
+		{
+			HTREEITEM hti;
+
+			// Clear old field settings
+			widget->fields.clear();
+
+			auto check = [](HTREEITEM hti, auto& check) {
+				while (hti)
+				{
+					WCHAR text[MAX_PATH]{};
+					TVITEM tvi{};
+
+					tvi.hItem = hti;
+					tvi.mask = TVIF_TEXT | TVIF_STATE;
+					tvi.pszText = text;
+					tvi.cchTextMax = MAX_PATH;
+					tvi.stateMask = TVIS_STATEIMAGEMASK;
+
+					// Get item
+					TreeView_GetItem(hwndTV, &tvi);
+
+					// Add field
+					if (STATEIMAGEMASKTOINDEX(tvi.state) - 1)
+					{
+						std::wstring wtext(tvi.pszText);
+						widget->fields.insert(string(wtext.begin(), wtext.end()));
+					}
+
+					// Get next item
+					check(TreeView_GetNextItem(hwndTV, hti, TVGN_CHILD), check);
+					hti = TreeView_GetNextItem(hwndTV, hti, TVGN_NEXT);
+				}
+			};
+
+			check(hti, check);
+
+
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
+		}
 
 		case IDC_ADD_L:
 			widget->rect.left = ShiftPosition(hDlg, IDC_LEFT, 1) - 1;
@@ -229,13 +257,15 @@ INT_PTR CALLBACK Edit(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	return (INT_PTR)FALSE;
 }
 
-void TreeBranch(HWND hwndTV, LPWSTR pszText, HTREEITEM hParent)
+void TreeBranch(HWND hwndTV, LPWSTR pszText, UINT fCheck, HTREEITEM hParent)
 {
 	TVITEM tvi{};
 	TVINSERTSTRUCT tvins{};
 
-	tvi.mask = TVIF_TEXT;
+	tvi.mask = TVIF_TEXT | TVIF_STATE;
 	tvi.pszText = pszText;
+	tvi.stateMask = TVIS_STATEIMAGEMASK;
+	tvi.state = INDEXTOSTATEIMAGEMASK(fCheck ? 2 : 1);
 	tvins.item = tvi;
 	tvins.hInsertAfter = (HTREEITEM)TVI_LAST;
 	tvins.hParent = hParent;
